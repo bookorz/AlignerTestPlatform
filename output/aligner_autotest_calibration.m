@@ -290,7 +290,7 @@ switch(action)
         % 			'position', [70, 15, 30, 2]);
         hPopupMenu_testmode = uicontrol('style', 'popupmenu', ...
             'tag', 'ui4testmode', ...
-            'string', 'Fix|Step(Center)|Step(Notch)|Theta(Only)', ...
+            'string', 'Fix|Step(Center)|Step(Notch)|Theta(One-Way)|Theta(Two-Way)|Z&Grip', ...
             'unit','characters', ...
             'value',3, ...
             'position', [70, 15, 30, 2]);
@@ -686,6 +686,8 @@ switch(action)
                 set(hText_offsetyheader,'String','Y Offset(um)');
                 set(hText_offsetthetaheader,'String','Notch Dir(mdeg)');
             case 4 %Theta(Only)
+            case 5
+            case 6
                 set(hText_offsetxheader,'String','X Offset(um)');
                 set(hText_offsetyheader,'String','Y Offset(um)');
                 set(hText_offsetthetaheader,'String','Notch Dir(mdeg)');
@@ -2274,12 +2276,21 @@ switch(action)
                 fclose(fid_log);
                 return;
             end
+            if get(hPopupMenu_alignertype,'Value') == 1 && get(hPopupMenu_testmode, 'value') >= 4
+                current_situation = 'Test mode not support VAC type';
+                set(hText_currentsituation,'String',current_situation);
+                clock_log = clock;
+                fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+                fclose(fid_log);
+                return;
+            end
             COM_cylinder = get(hText_cylinderport,'String');
             COM_aligner = get(hText_alignerport,'String');
             hToggleButtun_communicate = findobj(0, 'tag', 'ui4communicate');
             MeasureUtility.Reset_All();
             Measure_aUtility.Reset_All();
             ttlStart = tic;
+            [status, msg, msgID] = mkdir(get(hEdit_path, 'string'));
             for n = 0:testCount
                 MeasureUtility.Var_n(n); %把n存入記憶體
                 tStart=tic;
@@ -2299,7 +2310,7 @@ switch(action)
                 end
                 
                 %             aligner_autotest_calibration('movex');
-                if get(hPopupMenu_testmode, 'value') ~= 4
+                if get(hPopupMenu_testmode, 'value') < 4
                     if n~= 0
                         current_situation = 'move wafer to the position';
                         set(hText_currentsituation,'String',current_situation);
@@ -2488,7 +2499,7 @@ switch(action)
                     %             pause(0.001);
                     aligner_autotest_calibration('align');
                     
-                    [status, msg, msgID] = mkdir(get(hEdit_path, 'string'));
+                    
                     t = get(hToggleButtun_align,'Userdata');
                     ack = t{1};
                     if get(hCheckBox_loaddata,'Value') == 1 || ~strncmp(ack, '$1FIN:ALIGN:00000000', 20)
@@ -2553,70 +2564,91 @@ switch(action)
                     end
                 else %Theta test
                     offsetTheta = round(str2num(get(hEdit_theta, 'string')));
-                    if rem(offsetTheta,360000) == 0
-                        if n == 0
-                            if get(hToggleButtun_align,'Value') == 0
-                                set(hToggleButtun_align,'Value',1);
-                            end
-                            pause(0.1);
-                            aligner_autotest_calibration('align');
-                            t = get(hToggleButtun_align,'Userdata');
-                            ack = t{1};
-                            tmpReply = regexp(ack,':','split');
-                            tmp = char(tmpReply(3));
-                            AlignReply = regexprep(tmp,'[\n\r]+','');
-                            if (hex2dec(AlignReply) < hex2dec('86800000') || hex2dec(AlignReply) > hex2dec('86900000')) && hex2dec(AlignReply) ~= hex2dec('96860000') && hex2dec(AlignReply) ~= hex2dec('00000000')
-                                current_situation = ack;
-                                set(hText_currentsituation,'String',current_situation);
-                                break;
-                            end
-                        else
-%                             if n==1
+                    %if rem(offsetTheta,360000) == 0
+                    if n == 0
+                        if get(hToggleButtun_align,'Value') == 0
+                            set(hToggleButtun_align,'Value',1);
+                        end
+                        pause(0.1);
+                        aligner_autotest_calibration('align');
+                        t = get(hToggleButtun_align,'Userdata');
+                        ack = t{1};
+                        tmpReply = regexp(ack,':','split');
+                        tmp = char(tmpReply(3));
+                        AlignReply = regexprep(tmp,'[\n\r]+','');
+                        if (hex2dec(AlignReply) < hex2dec('86800000') || hex2dec(AlignReply) > hex2dec('86900000')) && hex2dec(AlignReply) ~= hex2dec('96860000') && hex2dec(AlignReply) ~= hex2dec('00000000')
+                            current_situation = ack;
+                            set(hText_currentsituation,'String',current_situation);
+                            break;
+                        end
+                    else
+                        switch get(hPopupMenu_testmode, 'value')
+                            case 4 %Theta(One-Way)
+                                if n==1
+                                    [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
+                                    [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
+                                    [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
+                                end
+                                [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(offsetTheta)],COM_aligner);
+                            case 5 %Theta(Two-Way)
+                                if n==1
+                                    [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
+                                    [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
+                                    [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
+                                end
+                                if mod(n,2) == 0
+                                    [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(offsetTheta)],COM_aligner);
+                                else
+                                    [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(-offsetTheta-15000)],COM_aligner);
+                                    [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(15000)],COM_aligner);
+                                end
+                                %[rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(-offsetTheta)],COM_aligner);
+                            case 6 %Z&Grip
                                 [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
                                 [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
                                 [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
-%                             end
-                            [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(offsetTheta)],COM_aligner);
-                             [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
-                             [rslt,ack] = serial_command('$1CMD:MOVED:5,2,+00002000',COM_aligner);    %X CLAMP
-                             [rslt,ack] = serial_command('$1CMD:MOVED:4,2,+00006000',COM_aligner);    %Z UP
-                            current_situation = 'save align data';
-                            set(hText_currentsituation,'String',current_situation);
-                            clock_log = clock;
-                            fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-                            pause(0.001);
-                            [rslt,ackali] = serial_get('$1GET:ALIGN:0',COM_aligner);
-                            %xlsFile = [get(hEdit_path, 'string'),'\',get(hEdit_path, 'string'),'.xls'];
-                            %sheetName='data';
-                            if n == 0
-                                %                headers =  {'n','notch angle','offset angle','offset','encoder data abs','cpld count','ccd average','ccd max','num ccd max','encoder ccd max','ccd min','num ccd min','encoder ccd min','ccd per encoder max','num ccd per encoder max','encoder ccd per encoder max','count ccd per encoder max','ccd per encoder min','num ccd per encoder min','encoder ccd per encoder min','count ccd per encoder min','result','threshold','photo intensity','photo switch','photo sense 0','photo sense 1'};
-                                headers =  {'n','encoder notch','encoder notch delta','encoder offset','ccd offset','encoder 2nd flat','encoder data abs','cpld count','ccd average','ccd max','num ccd max','encoder ccd max','ccd min','num ccd min','encoder ccd min','ccd per encoder max','num ccd per encoder max','encoder ccd per encoder max','count ccd per encoder max','ccd per encoder min','num ccd per encoder min','encoder ccd per encoder min','count ccd per encoder min','ccd per encoder max','num ccd per encoder max','encoder ccd per encoder max','count ccd per encoder max','ccd per encoder min','num ccd per encoder min','encoder ccd per encoder min','count ccd per encoder min','result','threshold','photo intensity','photo switch','photo sense 0','photo sense 1'};
-                                %[status,msg] = xlswrite(xlsFile,headers,sheetName);
-                                %fid = fopen('D:\Output\data.csv', 'w') ;
-                                fid = fopen( [get(hEdit_path, 'string'),'\','data_',get(hEdit_path, 'string'),'.csv'], 'w') ;
-                                
-                                fprintf(fid, '%s,', headers{1,1:end-1}) ;
-                                fprintf(fid, '%s\n', headers{1,end}) ;
-                                fclose(fid) ;
-                            end
-                            %                 [status,msg] = xlswrite(xlsFile,n,sheetName,['A',num2str(n+2)]);
-                            ackali_split = regexp(ackali,'\$1ACK\:ALIGN\:','split');
-                            ackali_split = regexp(ackali_split{1,2},'\r','split');
-                            ackali_split = regexp(ackali_split{1,1},',','split');
-                            ackali_split = [num2str(n),ackali_split];
-                            %                 [status,msg] = xlswrite(xlsFile,ackali_split,sheetName,['B',num2str(n+2)]);
-                            %寫入資料至CSV，逗號分隔
-                            fid = fopen([get(hEdit_path, 'string'),'\','data_',get(hEdit_path, 'string'),'.csv'], 'a') ;
-                            fprintf(fid, '%s,', ackali_split{1,1:end-1}) ;
-                            fprintf(fid, '%s\n', ackali_split{1,end}) ;
-                            fclose(fid);
-                            
+                                [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
+                                [rslt,ack] = serial_command('$1CMD:MOVED:5,2,+00002000',COM_aligner);    %X UnCLAMP
+                                [rslt,ack] = serial_command('$1CMD:MOVED:4,2,+00006000',COM_aligner);    %Z UP
                         end
-                    else
-                        current_situation = 'offsetTheta invalid!';
+                        
+                        current_situation = 'save align data';
                         set(hText_currentsituation,'String',current_situation);
-                        break;
+                        clock_log = clock;
+                        fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+                        pause(0.001);
+                        [rslt,ackali] = serial_get('$1GET:ALIGN:0',COM_aligner);
+                        %xlsFile = [get(hEdit_path, 'string'),'\',get(hEdit_path, 'string'),'.xls'];
+                        %sheetName='data';
+                        if n == 0
+                            %                headers =  {'n','notch angle','offset angle','offset','encoder data abs','cpld count','ccd average','ccd max','num ccd max','encoder ccd max','ccd min','num ccd min','encoder ccd min','ccd per encoder max','num ccd per encoder max','encoder ccd per encoder max','count ccd per encoder max','ccd per encoder min','num ccd per encoder min','encoder ccd per encoder min','count ccd per encoder min','result','threshold','photo intensity','photo switch','photo sense 0','photo sense 1'};
+                            headers =  {'n','encoder notch','encoder notch delta','encoder offset','ccd offset','encoder 2nd flat','encoder data abs','cpld count','ccd average','ccd max','num ccd max','encoder ccd max','ccd min','num ccd min','encoder ccd min','ccd per encoder max','num ccd per encoder max','encoder ccd per encoder max','count ccd per encoder max','ccd per encoder min','num ccd per encoder min','encoder ccd per encoder min','count ccd per encoder min','ccd per encoder max','num ccd per encoder max','encoder ccd per encoder max','count ccd per encoder max','ccd per encoder min','num ccd per encoder min','encoder ccd per encoder min','count ccd per encoder min','result','threshold','photo intensity','photo switch','photo sense 0','photo sense 1'};
+                            %[status,msg] = xlswrite(xlsFile,headers,sheetName);
+                            %fid = fopen('D:\Output\data.csv', 'w') ;
+                            fid = fopen( [get(hEdit_path, 'string'),'\','data_',get(hEdit_path, 'string'),'.csv'], 'w') ;
+                            
+                            fprintf(fid, '%s,', headers{1,1:end-1}) ;
+                            fprintf(fid, '%s\n', headers{1,end}) ;
+                            fclose(fid) ;
+                        end
+                        %                 [status,msg] = xlswrite(xlsFile,n,sheetName,['A',num2str(n+2)]);
+                        ackali_split = regexp(ackali,'\$1ACK\:ALIGN\:','split');
+                        ackali_split = regexp(ackali_split{1,2},'\r','split');
+                        ackali_split = regexp(ackali_split{1,1},',','split');
+                        ackali_split = [num2str(n),ackali_split];
+                        %                 [status,msg] = xlswrite(xlsFile,ackali_split,sheetName,['B',num2str(n+2)]);
+                        %寫入資料至CSV，逗號分隔
+                        fid = fopen([get(hEdit_path, 'string'),'\','data_',get(hEdit_path, 'string'),'.csv'], 'a') ;
+                        fprintf(fid, '%s,', ackali_split{1,1:end-1}) ;
+                        fprintf(fid, '%s\n', ackali_split{1,end}) ;
+                        fclose(fid);
+                        
                     end
+                    %                     else
+                    %                         current_situation = 'offsetTheta invalid!';
+                    %                         set(hText_currentsituation,'String',current_situation);
+                    %                         break;
+                    %                     end
                 end
                 for i = 1:picCount
                     if get(hToggleButtun_run,'Value') == 0
@@ -2794,7 +2826,7 @@ switch(action)
                 end
                 %數值存入記憶體
                 %begin
-                if get(hPopupMenu_testmode, 'value') == 4
+                if get(hPopupMenu_testmode, 'value') >= 4
                     t = 0;
                 end
                 
