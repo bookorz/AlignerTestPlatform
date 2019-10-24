@@ -107,9 +107,9 @@ end
 MotionTimeout = tic;
 
 while (get(s, 'BytesAvailable') == 0)
-    t2 = toc(MotionTimeout);
+    t = toc(MotionTimeout);
     %fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ','motion timeout t:', num2str(roundn(t2,-3)) ,'\r\n'], clock);
-    if t2 > 60.0        
+    if t > 60.0        
         break;
     end
 end

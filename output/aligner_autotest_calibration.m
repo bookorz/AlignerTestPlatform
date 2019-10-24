@@ -1499,6 +1499,7 @@ switch(action)
         hToggleButtun_communicate = findobj(0, 'tag', 'ui4communicate');
         hText_currentsituation = findobj(0, 'tag', 'ui4currentsituation');
         hEdit_xoffset = findobj(0, 'tag', 'ui4xoffset');
+        hToggleButtun_align = findobj(0, 'tag', 'ui4align');
         if get(hToggleButtun_communicate,'Value') == 0
             fclose(fid_log);
             return;
@@ -1512,6 +1513,9 @@ switch(action)
             set(hText_currentsituation,'String',current_situation);
             clock_log = clock;
             fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+        else
+            % Make fake align return data to force stop
+            set(hToggleButtun_align,'Userdata',{'$1FIN:ALIGN:12345678',num2str(1)});
         end
     case 'movexbackward'
         hText_alignerport = findobj(0, 'tag', 'ui4alignerport');
@@ -2352,6 +2356,10 @@ switch(action)
                             end
                             
                             [rslt,ack] = serial_command('$1CMD:HOME_',COM_aligner);    %HOME
+                            % 20191024 by ethan
+                            if get(hPopupMenu_alignertype,'Value') == 1
+                                aligner_autotest_calibration('movexforward');
+                            end
                             
                             if get(hPopupMenu_alignertype,'Value') == 1
                                 [rslt,ack] = serial_z(3,COM_cylinder);
@@ -2761,9 +2769,10 @@ switch(action)
                 pause(0.001);
                 
                 tElapsed=toc(tStart);
-                if get(hPopupMenu_alignertype,'Value') == 1
-                    aligner_autotest_calibration('movexbackward');
-                end
+                % move to offset finish 20191024 by ethan
+%                 if get(hPopupMenu_alignertype,'Value') == 1
+%                     aligner_autotest_calibration('movexbackward');
+%                 end
                 
                 %title( [ strcat('Elapsed time:',num2str(roundn(toc, -3)),'(s)    n=') , num2str( n )] );
                 
@@ -3718,13 +3727,21 @@ switch(action)
                 %             end
                 
                 %set(hText_testcountheader,'String',strcat('Test Cnt',num2str(n+1) ,'/',num2str(testCount)));
-                
+                if MeasureUtility.Var_notch_deg > 0.5 || MeasureUtility.Var_offset_mm > 0.5
+                    current_situation = 'Out of spec';
+                    set(hText_currentsituation,'String',current_situation);
+                    break;
+                end
             end
             %         dos(['start ' xlsFile]);
-            set(hToggleButtun_run,'Value',0);
-            current_situation = 'auto test finished';
-            set(hText_currentsituation,'String',current_situation);
-            fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock);
+            
+            %if MeasureUtility.Var_notch_deg > 0.5 || MeasureUtility.Var_offset_mm > 0.5
+            %else
+                set(hToggleButtun_run,'Value',0);
+                current_situation = 'auto test finished';
+                set(hText_currentsituation,'String',current_situation);
+                fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock);
+            %end
         catch e %e is an MException struct
             fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ','The identifier was:\n%s',e.identifier,'\r\n'], clock);
             fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ','There was an error! The message was:\n%s',e.message,'\r\n'], clock);
