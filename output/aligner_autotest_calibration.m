@@ -290,7 +290,7 @@ switch(action)
         % 			'position', [70, 15, 30, 2]);
         hPopupMenu_testmode = uicontrol('style', 'popupmenu', ...
             'tag', 'ui4testmode', ...
-            'string', 'Fix|Step(Center)|Step(Notch)|Theta(One-Way)|Theta(Two-Way)|Z&Grip', ...
+            'string', 'Fix|Step(Center)|Step(Notch)|Theta(One-Way)|Theta(Two-Way)|Only Capture|Z&Grip', ...
             'unit','characters', ...
             'value',3, ...
             'position', [70, 15, 30, 2]);
@@ -2276,7 +2276,7 @@ switch(action)
                 fclose(fid_log);
                 return;
             end
-            if get(hPopupMenu_alignertype,'Value') == 1 && get(hPopupMenu_testmode, 'value') >= 4
+            if get(hPopupMenu_alignertype,'Value') == 1 && get(hPopupMenu_testmode, 'value') >= 7
                 current_situation = 'Test mode not support VAC type';
                 set(hText_currentsituation,'String',current_situation);
                 clock_log = clock;
@@ -2299,15 +2299,15 @@ switch(action)
                     fclose(fid_log);
                     return;
                 end
-                if get(hToggleButtun_communicate,'Value') == 0
-                    set(hToggleButtun_run,'Value',0);
-                    current_situation = 'communication fail';
-                    set(hText_currentsituation,'String',current_situation);
-                    clock_log = clock;
-                    fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-                    fclose(fid_log);
-                    return;
-                end
+%                 if get(hToggleButtun_communicate,'Value') == 0
+%                     set(hToggleButtun_run,'Value',0);
+%                     current_situation = 'communication fail';
+%                     set(hText_currentsituation,'String',current_situation);
+%                     clock_log = clock;
+%                     fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+%                     fclose(fid_log);
+%                     return;
+%                 end
                 
                 %             aligner_autotest_calibration('movex');
                 if get(hPopupMenu_testmode, 'value') < 4
@@ -2562,7 +2562,7 @@ switch(action)
                         [rslt,ack] = serial_command('$1CMD:HOME_',COM_aligner);    %HOME
                         continue;
                     end
-                else %Theta test
+                elseif get(hPopupMenu_testmode, 'value') ~= 6 %Theta test
                     offsetTheta = round(str2num(get(hEdit_theta, 'string')));
                     %if rem(offsetTheta,360000) == 0
                     if n == 0
@@ -2603,7 +2603,7 @@ switch(action)
                                     [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(15000)],COM_aligner);
                                 end
                                 %[rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(-offsetTheta)],COM_aligner);
-                            case 6 %Z&Grip
+                            case 7 %Z&Grip
                                 [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
                                 [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
                                 [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
@@ -2761,7 +2761,7 @@ switch(action)
                 pause(0.001);
                 
                 tElapsed=toc(tStart);
-                if get(hPopupMenu_alignertype,'Value') == 1
+                if get(hPopupMenu_alignertype,'Value') == 1 && get(hPopupMenu_testmode, 'value') ~= 6
                     aligner_autotest_calibration('movexbackward');
                 end
                 
@@ -2826,7 +2826,7 @@ switch(action)
                 end
                 %數值存入記憶體
                 %begin
-                if get(hPopupMenu_testmode, 'value') >= 4
+                if get(hPopupMenu_testmode, 'value') >= 5
                     t = 0;
                 end
                 
@@ -3065,7 +3065,7 @@ switch(action)
                     ];
                 dlmwrite([get(hEdit_path, 'string'),'\','measure_',get(hEdit_path, 'string'),'.csv'],M,'delimiter',',','precision','%.4f','-append');%寫入全部資料
                 if n == 0
-                    headers =  {'n','average(t)','max(t)','min(t)','average(x0)','average(y0)','average(point(1))','average(point(2))','r','pixel/mm','offset(mm)','offset(deg)','notch(deg)','center(deg)','center(mm)','n','average(theta)','average(theta1)'};
+                    headers =  {'n','average(t)','max(t)','min(t)','average(x0)','average(y0)','average(point(1))','average(point(2))','r','pixel/mm','offset(mm)','offset(deg)','notch(deg)','center(deg)','center(mm)','n','average(theta)','average(theta1)','time'};
                     %寫入Header至CSV，逗號分隔
                     fid = fopen([get(hEdit_path, 'string'),'\','MeasureUtility_',get(hEdit_path, 'string'),'.csv'], 'w') ;
                     fprintf(fid, '%s,', headers{1,1:end-1}) ;
@@ -3090,6 +3090,7 @@ switch(action)
                     MeasureUtility.Var_n ...
                     MeasureUtility.Var_average_theta ...
                     MeasureUtility.Var_average_theta1 ...
+                    datestr(now) ...
                     ];
                 dlmwrite([get(hEdit_path, 'string'),'\','MeasureUtility_',get(hEdit_path, 'string'),'.csv'],M,'delimiter',',','precision','%.4f','-append');%寫入全部資料
                 
@@ -3504,32 +3505,33 @@ switch(action)
                 fclose(fid);
                 %                 [status,msg] = xlswrite(xlsFile,ackpos1_split,sheetName,['B',num2str(n+2)]);
                 %[status,msg] = xlswrite(xlsFile,[n,ackpos1_split],sheetName,['A',num2str(n+2)]);
-                
-                [rslt,ackrslt] = serial_get('$1GET:ALIGN:1',COM_aligner);
-                current_situation = 'save result data';
-                set(hText_currentsituation,'String',current_situation);
-                clock_log = clock;
-                fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-                pause(0.001);
-                %sheetName='result';
-                if n == 0
-                    headers =  {'n','aligner type','wafer radius','notch angle','offset x','offset y','theta angle','distance2','theta2','result'};
-                    fid = fopen([get(hEdit_path, 'string'),'\','result_',get(hEdit_path, 'string'),'.csv'], 'w') ;
-                    fprintf(fid, '%s,', headers{1,1:end-1}) ;
-                    fprintf(fid, '%s\n', headers{1,end}) ;
+                if get(hPopupMenu_testmode, 'value') ~= 6
+                    [rslt,ackrslt] = serial_get('$1GET:ALIGN:1',COM_aligner);
+                    current_situation = 'save result data';
+                    set(hText_currentsituation,'String',current_situation);
+                    clock_log = clock;
+                    fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+                    pause(0.001);
+                    %sheetName='result';
+                    if n == 0
+                        headers =  {'n','aligner type','wafer radius','notch angle','offset x','offset y','theta angle','distance2','theta2','result'};
+                        fid = fopen([get(hEdit_path, 'string'),'\','result_',get(hEdit_path, 'string'),'.csv'], 'w') ;
+                        fprintf(fid, '%s,', headers{1,1:end-1}) ;
+                        fprintf(fid, '%s\n', headers{1,end}) ;
+                        fclose(fid);
+                        %[status,msg] = xlswrite(xlsFile,headers,sheetName);
+                    end
+                    %                 [status,msg] = xlswrite(xlsFile,n,sheetName,['A',num2str(n+2)]);
+                    ackrslt_split = regexp(ackrslt,'\$1ACK\:ALIGN\:','split');
+                    ackrslt_split = regexp(ackrslt_split{1,2},'\r','split');
+                    ackrslt_split = regexp(ackrslt_split{1,1},',','split');
+                    ackrslt_split = [num2str(n),ackrslt_split];
+                    %寫入資料至CSV，逗號分隔
+                    fid = fopen([get(hEdit_path, 'string'),'\','result_',get(hEdit_path, 'string'),'.csv'], 'a') ;
+                    fprintf(fid, '%s,', ackrslt_split{1,1:end-1}) ;
+                    fprintf(fid, '%s\n', ackrslt_split{1,end}) ;
                     fclose(fid);
-                    %[status,msg] = xlswrite(xlsFile,headers,sheetName);
                 end
-                %                 [status,msg] = xlswrite(xlsFile,n,sheetName,['A',num2str(n+2)]);
-                ackrslt_split = regexp(ackrslt,'\$1ACK\:ALIGN\:','split');
-                ackrslt_split = regexp(ackrslt_split{1,2},'\r','split');
-                ackrslt_split = regexp(ackrslt_split{1,1},',','split');
-                ackrslt_split = [num2str(n),ackrslt_split];
-                %寫入資料至CSV，逗號分隔
-                fid = fopen([get(hEdit_path, 'string'),'\','result_',get(hEdit_path, 'string'),'.csv'], 'a') ;
-                fprintf(fid, '%s,', ackrslt_split{1,1:end-1}) ;
-                fprintf(fid, '%s\n', ackrslt_split{1,end}) ;
-                fclose(fid);
                 %                 [status,msg] = xlswrite(xlsFile,ackrslt_split,sheetName,['B',num2str(n+2)]);
                 %[status,msg] = xlswrite(xlsFile,[n,ackrslt_split],sheetName,['A',num2str(n+2)]);
                 current_situation = 'display measure data';
