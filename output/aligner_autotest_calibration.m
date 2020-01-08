@@ -46,17 +46,19 @@ switch(action)
         %         bw_inverse = str2num(char(default(12)));   %1;
         threshold_gray = str2num(char(default(12)));   %40;
         threshold_filter = str2num(char(default(13)));   %100000;
-        COM_cylinder = default(14);   %'COM4';
+        COM_temperature = default(14);   %'COM4';
+        COM_temperature = COM_temperature{1};
+        COM_cylinder = default(15);   %'COM4';
         COM_cylinder = COM_cylinder{1};
-        COM_aligner = default(15);   %'COM3';
+        COM_aligner = default(16);   %'COM3';
         COM_aligner = COM_aligner{1};
-        COM_camera = default(16);   %'COM2';
+        COM_camera = default(17);   %'COM2';
         COM_camera = COM_camera{1};
-        COM_cameraarc = default(17);   %'COM';
+        COM_cameraarc = default(18);   %'COM';
         COM_cameraarc = COM_cameraarc{1};
-        Num = str2num(char(default(18)));   %0;
-        xOffset = str2num(char(default(19)));   %0;
-        picCount = str2num(char(default(20)));   %5;
+        Num = str2num(char(default(19)));   %0;
+        xOffset = str2num(char(default(20)));   %0;
+        picCount = str2num(char(default(21)));   %5;
         %	CheckBox
         %         hText_imageprocessheader = uicontrol('style', 'text', ...
         % 			'tag', 'ui4imageprocessheader', ...
@@ -141,7 +143,7 @@ switch(action)
         hText_offsetxheader = uicontrol('style', 'text', ...
             'tag', 'ui4offsetxheader', ...
             'horizontalalignment', 'left', ...
-            'string', 'X Offset(um)', ...
+            'string', 'X Offset(um)R', ...
             'unit','characters', ...
             'position', [70, 11, 30, 2]);
         hEdit_x = uicontrol('style', 'edit', ...
@@ -152,7 +154,7 @@ switch(action)
         hText_offsetyheader = uicontrol('style', 'text', ...
             'tag', 'ui4offsetyheader', ...
             'horizontalalignment', 'left', ...
-            'string', 'Y Offset(um)', ...
+            'string', 'Y Offset(um)R', ...
             'unit','characters', ...
             'position', [70, 7, 30, 2]);
         hEdit_y = uicontrol('style', 'edit', ...
@@ -163,7 +165,7 @@ switch(action)
         hText_offsetthetaheader = uicontrol('style', 'text', ...
             'tag', 'ui4offsetthetaheader', ...
             'horizontalalignment', 'left', ...
-            'string', 'T Offset(mdeg)', ...
+            'string', 'T Offset(mdeg)R', ...
             'unit','characters', ...
             'position', [70, 3, 30, 2]);
         hEdit_theta = uicontrol('style', 'edit', ...
@@ -226,34 +228,49 @@ switch(action)
             'string', path, ...
             'unit','characters', ...
             'position', [35, 9, 30, 2]);
+        hText_temperatureportheader = uicontrol('style', 'text', ...
+            'tag', 'ui4temperatureportheader', ...
+            'horizontalalignment', 'left', ...
+            'string', 'Temperature Port', ...
+            'unit','characters', ...
+            'position', [70, 17.5, 30, 1.5], ...
+            'FontSize',12);
+        hEdit_temperatureport = uicontrol('style', 'edit', ...
+            'tag', 'ui4temperatureport', ...
+            'string', COM_temperature, ...
+            'unit','characters', ...
+            'position', [70, 15.5, 30, 2]);
         hText_cylinderportheader = uicontrol('style', 'text', ...
             'tag', 'ui4cylinderportheader', ...
             'horizontalalignment', 'left', ...
             'string', 'Cylinder Port', ...
             'unit','characters', ...
-            'position', [70, 15, 30, 2]);
+            'position', [70, 14, 30, 1.5], ...
+            'FontSize',12);
         hEdit_cylinderport = uicontrol('style', 'edit', ...
             'tag', 'ui4cylinderport', ...
             'string', COM_cylinder, ...
             'unit','characters', ...
-            'position', [70, 13, 30, 2]);
+            'position', [70, 12, 30, 2]);
         hText_alignerportheader = uicontrol('style', 'text', ...
             'tag', 'ui4alignerportheader', ...
             'horizontalalignment', 'left', ...
             'string', 'Aligner Port', ...
             'unit','characters', ...
-            'position', [70, 11, 30, 2]);
+            'position', [70, 10.5, 30, 1.5], ...
+            'FontSize',12);
         hEdit_alignerport = uicontrol('style', 'edit', ...
             'tag', 'ui4alignerport', ...
             'string', COM_aligner, ...
             'unit','characters', ...
-            'position', [70, 9, 30, 2]);
+            'position', [70, 8.5, 30, 2]);
         hText_cameraportheader = uicontrol('style', 'text', ...
             'tag', 'ui4cameraportheader', ...
             'horizontalalignment', 'left', ...
             'string', 'Camera Port', ...
             'unit','characters', ...
-            'position', [70, 7, 30, 2]);
+            'position', [70, 7, 30, 1.5], ...
+            'FontSize',12);
         hEdit_cameraport = uicontrol('style', 'edit', ...
             'tag', 'ui4cameraport', ...
             'string', COM_camera, ...
@@ -315,7 +332,7 @@ switch(action)
             'tag', 'ui4interface', ...
             'string', 'Device Port|Device Command|Image Process|Test Mode', ...
             'unit','characters', ...
-            'position', [70, 18, 30, 2]);
+            'position', [70, 20, 30, 2]);
         hPopupMenu_number = uicontrol('style', 'popupmenu', ...
             'tag', 'ui4number', ...
             'string', 'Platform 0|Platform 1', ...
@@ -1023,12 +1040,14 @@ switch(action)
         end
     case 'communicate'
         hToggleButtun_communicate = findobj(0, 'tag', 'ui4communicate');
+        hText_temperatureport = findobj(0, 'tag', 'ui4temperatureport');
         hText_cylinderport = findobj(0, 'tag', 'ui4cylinderport');
         hText_alignerport = findobj(0, 'tag', 'ui4alignerport');
         hText_cameraport = findobj(0, 'tag', 'ui4cameraport');
         hText_currentsituation = findobj(0, 'tag', 'ui4currentsituation');
         hPopupMenu_wafertype = findobj(0, 'tag', 'ui4wafertype');
         hText_cameraarcport = findobj(0, 'tag', 'ui4cameraarcport');
+        COM_temperature = get(hText_temperatureport,'String');
         COM_cylinder = get(hText_cylinderport,'String');
         COM_aligner = get(hText_alignerport,'String');
         COM_camera = get(hText_cameraport,'String');
@@ -1051,11 +1070,15 @@ switch(action)
         end
         [~,res]=system('mode');
         COM = regexp(res,'COM\d+','match');
+        temperature_check = 0;
         cylinder_check = 0;
         aligner_check = 0;
         camera_check = 0;
         cameraarc_check = 1;    %0;
         for n = 1:size(COM,2)
+            if strncmp(COM(1,n),COM_temperature,size(COM_temperature,2))
+                temperature_check = 1; 
+            end
             if strncmp(COM(1,n),COM_cylinder,size(COM_cylinder,2))
                 cylinder_check = 1;
             end
@@ -1071,7 +1094,7 @@ switch(action)
             %                 cameraarc_check = 1;
             %             end
         end
-        if cylinder_check==0 || aligner_check==0 || camera_check==0 || cameraarc_check == 0
+        if temperature_check==0 || cylinder_check==0 || aligner_check==0 || camera_check==0 || cameraarc_check == 0
             set(hToggleButtun_communicate,'Value',0);
             current_situation = 'port error';
             set(hText_currentsituation,'String',current_situation);
@@ -1080,6 +1103,12 @@ switch(action)
             fclose(fid_log);
             return;
         end
+        % Create serial object 's'. Specify server machine and port number.
+        s = serial(COM_temperature,'BaudRate',9600,'DataBits',8);
+        set(s, 'Timeout', 0.1);
+        % Open connection to the server.
+        fopen(s);
+    
         % Create serial object 's'. Specify server machine and port number.
         s = serial(COM_cylinder,'BaudRate',38400,'DataBits',8);
         set(s, 'Timeout', 0.1);
@@ -2223,6 +2252,7 @@ switch(action)
             hEdit_testcount = findobj(0, 'tag', 'ui4testcount');
             hFigure = findobj(0, 'tag', 'ui4figure');
             
+            hText_temperatureport = findobj(0, 'tag', 'ui4temperatureport');
             hText_cylinderport = findobj(0, 'tag', 'ui4cylinderport');
             hText_alignerport = findobj(0, 'tag', 'ui4alignerport');
             
@@ -2284,6 +2314,7 @@ switch(action)
                 fclose(fid_log);
                 return;
             end
+            COM_temperature = get(hText_temperatureport,'String');
             COM_cylinder = get(hText_cylinderport,'String');
             COM_aligner = get(hText_alignerport,'String');
             hToggleButtun_communicate = findobj(0, 'tag', 'ui4communicate');
@@ -2321,9 +2352,9 @@ switch(action)
                         t = get(hToggleButtun_align,'Userdata');
                         ack = t{1};
                         if strncmp(ack, '$1FIN:ALIGN:00000000', 20)
-                            offsetX = round(str2num(get(hEdit_x, 'string')));
-                            offsetY = round(str2num(get(hEdit_y, 'string')));
-                            offsetTheta = round(str2num(get(hEdit_theta, 'string')));
+                            offsetX = unidrnd(round(str2num(get(hEdit_x, 'string')))+1)-1;
+                            offsetY = unidrnd(round(str2num(get(hEdit_y, 'string')))+1)-1;
+                            offsetTheta = unidrnd(round(str2num(get(hEdit_theta, 'string')))+1)-1;
                             if (get(hPopupMenu_testmode, 'value') ~= 2 && (offsetX > 8000 || offsetY > 8000)) || (get(hPopupMenu_testmode, 'value') == 2 && offsetX > 8000)
                                 current_situation = 'test mode range error';
                                 set(hText_currentsituation,'String',current_situation);
@@ -2771,7 +2802,7 @@ switch(action)
                 if n == 0
                     %                           A   B           C           D   E    F    G          H          I          J            K             L             M            N             O            P  Q  R  S  T            U           V             W
                     %headers =  {'n','point0(1)','point0(2)','t','x0','y0','point(1)','point(2)','tElapsed','offset(mm)','offset(deg)','notch0(deg)','notch(deg)','center(deg)','center(mm)','','','','','theta(deg)','flat(deg)','theta1(deg)','flat1(deg)'};
-                    headers =  {'n','point0(1)','point0(2)','t','x0','y0','point(1)','point(2)','tElapsed','offset(mm)','offset(deg)','notch0(deg)','notch(deg)','center(deg)','center(mm)','theta(deg)','flat(deg)','theta1(deg)','flat1(deg)'};
+                    headers =  {'n','point0(1)','point0(2)','t','x0','y0','point(1)','point(2)','tElapsed','offset(mm)','offset(deg)','notch0(deg)','notch(deg)','center(deg)','center(mm)','theta(deg)','flat(deg)','theta1(deg)','flat1(deg)','humidity_1','Temp_1','humidity_2','Temp_2','humidity_3','Temp_3'};
                     %[status,msg] = xlswrite(xlsFile,headers,sheetName);
                     %寫入Header至CSV，逗號分隔
                     fid = fopen([get(hEdit_path, 'string'),'\','measure_',get(hEdit_path, 'string'),'.csv'], 'w') ;
@@ -3049,6 +3080,28 @@ switch(action)
                 end
                 %    A     B        C      D  E  F     G      H          I
                 
+                current_situation = 'download temperature data';
+                set(hText_currentsituation,'String',current_situation);
+                clock_log = clock;
+                fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+                pause(0.001);
+                [rslt,ack_get,data] = serial_get('$1GET:HT___',COM_temperature); % data read & save
+%                 try
+                    tmpReply = regexp(data,':','split');
+                    tmp = char(tmpReply(3));
+                    tmpReply= regexp(tmp,',','split');
+                    humidity_1 = str2double(tmpReply(1));
+                    temp_1 = str2double(tmpReply(2));
+                    humidity_2 = str2double(tmpReply(3));
+                    temp_2 = str2double(tmpReply(4));
+                    humidity_3 = str2double(tmpReply(5));
+                    temp_3 = str2double(tmpReply(6));
+%                 catch e %e is an MException struct
+%                     fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ','The identifier was:\n%s',e.identifier,'\r\n'], clock);
+%                     fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ','There was an error! The message was:\n%s',e.message,'\r\n'], clock);
+%                 end
+                
+                
                 M = [n point0(1) point0(2) t x0 y0 point(1) point(2) tElapsed ...
                     offset_mm ...%J
                     offset_deg ...%K
@@ -3062,10 +3115,24 @@ switch(action)
                     flat1_deg ...%W
                     R_interval ...%R
                     S_interval ...%S
+                    humidity_1 ...
+                    temp_1 ...
+                    humidity_2 ...
+                    temp_2 ...
+                    humidity_3 ...
+                    temp_3 ...
                     ];
                 dlmwrite([get(hEdit_path, 'string'),'\','measure_',get(hEdit_path, 'string'),'.csv'],M,'delimiter',',','precision','%.4f','-append');%寫入全部資料
+            
+                headers =  {num2str(n), datestr(now,'yyyy-mm-dd HH:MM:SS')};%寫入時間
+                %寫入CSV，逗號分隔
+                fid = fopen([get(hEdit_path, 'string'),'\','time.csv'], 'a') ;
+                fprintf(fid, '%s,', headers{1,1:end-1}) ;
+                fprintf(fid, '%s\n', headers{1,end}) ;
+                fclose(fid) ;
+
                 if n == 0
-                    headers =  {'n','average(t)','max(t)','min(t)','average(x0)','average(y0)','average(point(1))','average(point(2))','r','pixel/mm','offset(mm)','offset(deg)','notch(deg)','center(deg)','center(mm)','n','average(theta)','average(theta1)','time'};
+                    headers =  {'n','average(t)','max(t)','min(t)','average(x0)','average(y0)','average(point(1))','average(point(2))','r','pixel/mm','offset(mm)','offset(deg)','notch(deg)','center(deg)','center(mm)','n','average(theta)','average(theta1)'};
                     %寫入Header至CSV，逗號分隔
                     fid = fopen([get(hEdit_path, 'string'),'\','MeasureUtility_',get(hEdit_path, 'string'),'.csv'], 'w') ;
                     fprintf(fid, '%s,', headers{1,1:end-1}) ;
@@ -3090,7 +3157,6 @@ switch(action)
                     MeasureUtility.Var_n ...
                     MeasureUtility.Var_average_theta ...
                     MeasureUtility.Var_average_theta1 ...
-                    datestr(now) ...
                     ];
                 dlmwrite([get(hEdit_path, 'string'),'\','MeasureUtility_',get(hEdit_path, 'string'),'.csv'],M,'delimiter',',','precision','%.4f','-append');%寫入全部資料
                 
