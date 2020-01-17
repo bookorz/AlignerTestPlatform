@@ -812,6 +812,8 @@ switch(action)
         hText_alignerport = findobj(0, 'tag', 'ui4alignerport');
         hText_cameraportheader = findobj(0, 'tag', 'ui4cameraportheader');
         hText_cameraport = findobj(0, 'tag', 'ui4cameraport');
+         hText_temperatureportheader = findobj(0, 'tag', 'ui4temperatureportheader');
+        hText_temperatureport = findobj(0, 'tag', 'ui4temperatureport');
         %         hText_testmodeheader = findobj(0, 'tag', 'ui4testmodeheader');
         hPopupMenu_testmode = findobj(0, 'tag', 'ui4testmode');
         hText_offsetxheader = findobj(0, 'tag', 'ui4offsetxheader');
@@ -855,6 +857,8 @@ switch(action)
                 set(hText_alignerport,'Visible','off');
                 set(hText_cameraportheader,'Visible','off');
                 set(hText_cameraport,'Visible','off');
+                set(hText_temperatureportheader,'Visible','off');
+                set(hText_temperatureport,'Visible','off');
                 %                 set(hText_testmodeheader,'Visible','off');
                 set(hPopupMenu_testmode,'Visible','off');
                 set(hText_offsetxheader,'Visible','off');
@@ -906,6 +910,8 @@ switch(action)
                         set(hText_alignerport,'Visible','on');
                         set(hText_cameraportheader,'Visible','on');
                         set(hText_cameraport,'Visible','on');
+                        set(hText_temperatureportheader,'Visible','on');
+                        set(hText_temperatureport,'Visible','on');
                         %                         set(hText_testmodeheader,'Visible','off');
                         set(hPopupMenu_testmode,'Visible','off');
                         set(hText_offsetxheader,'Visible','off');
@@ -944,6 +950,8 @@ switch(action)
                         set(hText_alignerport,'Visible','off');
                         set(hText_cameraportheader,'Visible','off');
                         set(hText_cameraport,'Visible','off');
+                        set(hText_temperatureportheader,'Visible','off');
+                        set(hText_temperatureport,'Visible','off');
                         %                         set(hText_testmodeheader,'Visible','off');
                         set(hPopupMenu_testmode,'Visible','off');
                         set(hText_offsetxheader,'Visible','off');
@@ -977,6 +985,8 @@ switch(action)
                         set(hText_alignerport,'Visible','off');
                         set(hText_cameraportheader,'Visible','off');
                         set(hText_cameraport,'Visible','off');
+                        set(hText_temperatureportheader,'Visible','off');
+                        set(hText_temperatureport,'Visible','off');
                         %                         set(hText_testmodeheader,'Visible','off');
                         set(hPopupMenu_testmode,'Visible','off');
                         set(hText_offsetxheader,'Visible','off');
@@ -1010,6 +1020,8 @@ switch(action)
                         set(hText_alignerport,'Visible','off');
                         set(hText_cameraportheader,'Visible','off');
                         set(hText_cameraport,'Visible','off');
+                        set(hText_temperatureportheader,'Visible','off');
+                        set(hText_temperatureport,'Visible','off');
                         %                         set(hText_testmodeheader,'Visible','on');
                         set(hPopupMenu_testmode,'Visible','on');
                         set(hText_offsetxheader,'Visible','on');
@@ -3113,14 +3125,14 @@ switch(action)
                     flat_deg ...%U
                     theta1_deg ...%V
                     flat1_deg ...%W
-                    R_interval ...%R
-                    S_interval ...%S
                     humidity_1 ...
                     temp_1 ...
                     humidity_2 ...
                     temp_2 ...
                     humidity_3 ...
                     temp_3 ...
+                    R_interval ...
+                    S_interval ...
                     ];
                 dlmwrite([get(hEdit_path, 'string'),'\','measure_',get(hEdit_path, 'string'),'.csv'],M,'delimiter',',','precision','%.4f','-append');%寫入全部資料
             
