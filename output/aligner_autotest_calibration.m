@@ -22,7 +22,7 @@ switch(action)
         hFigure = figure('Name','Aligner Test Calibration', ...
             'NumberTitle','off', ...
             'tag', 'ui4figure', ...
-            'OuterPosition', [1 50 940 700]);
+            'OuterPosition', [1 50 1000 700]);
         % 以寫入模式開啟txt檔案
         fid = fopen('testconfigure.txt');
         % 以浮點數格式寫入資料並換行
@@ -57,6 +57,7 @@ switch(action)
         Num = str2num(char(default(18)));   %0;
         xOffset = str2num(char(default(19)));   %0;
         picCount = str2num(char(default(20)));   %5;
+        OverAngleOffsetEnabled =  str2num(char(default(21)));     %0;        
         %	CheckBox
         %         hText_imageprocessheader = uicontrol('style', 'text', ...
         % 			'tag', 'ui4imageprocessheader', ...
@@ -82,6 +83,40 @@ switch(action)
             'unit','characters', ...
             'position', [35, 1, 30, 2], ...
             'value', download_data);
+        
+        %20200730 pingchung 離線模式 (for 離線讀取圖檔與檢測計算)
+        hCheckBox_offlinemode = uicontrol('style', 'checkbox', ...
+            'tag', 'ui4offlinemode', ...
+            'string', 'Offline Mode', ...
+            'unit','characters', ...
+            'position', [70, 19, 30, 2], ...            
+            'value', 0);  
+        
+        %20200803 pingchung (超過offset超過0.5度是否停機)        
+        hCheckBox_overangleoffset = uicontrol('style', 'checkbox', ...
+            'tag', 'ui4overoffsetthreshold', ...
+            'string', 'Over Offset(deg)', ...
+            'unit','characters', ...
+            'position', [70, 16, 30, 2], ...            
+            'value', OverAngleOffsetEnabled); 
+
+        %20200803 pingchung 儲存原影像        
+        hCheckBox_saveoriginalimage = uicontrol('style', 'checkbox', ...
+            'tag', 'ui4saveoriginalimage', ...
+            'string', 'Save Image', ...
+            'unit','characters', ...
+            'position', [70, 13, 30, 2], ...            
+            'value', 0);     
+        
+        %20200803 pingchung 靜態量測
+        %單張影像重複量測
+        hCheckBox_staticmeasure  = uicontrol('style', 'checkbox', ...
+            'tag', 'ui4staticmeasure', ...
+            'string', 'Static Measure', ...
+            'unit','characters', ...
+            'position', [70, 10, 30, 2], ...            
+            'value', 0);
+        
         % 第二個UI控制物件，用以指定X軸及Y軸的格子點數目。
         hText_xoffsetheader = uicontrol('style', 'text', ...
             'tag', 'ui4xoffsetheader', ...
@@ -171,50 +206,66 @@ switch(action)
             'string', int2str(offsetTheta), ...
             'unit','characters', ...
             'position', [70, 1, 30, 2]);
-        hText_ycutstartheader = uicontrol('style', 'text', ...
-            'tag', 'ui4ycutstartheader', ...
-            'horizontalalignment', 'left', ...
-            'string', 'Y Start (0~End)', ...
-            'unit','characters', ...
-            'position', [70, 7, 30, 2]);
-        hEdit_ycutstart = uicontrol('style', 'edit', ...
-            'tag', 'ui4ycutstart', ...
-            'string', y_start, ...
-            'unit','characters', ...
-            'position', [70, 5, 30, 2]);
-        hText_ycutendheader = uicontrol('style', 'text', ...
-            'tag', 'ui4ycutendheader', ...
-            'horizontalalignment', 'left', ...
-            'string', 'Y End (Start~12)', ...
-            'unit','characters', ...
-            'position', [70, 3, 30, 2]);
-        hEdit_ycutend = uicontrol('style', 'edit', ...
-            'tag', 'ui4ycutend', ...
-            'string', y_end, ...
-            'unit','characters', ...
-            'position', [70, 1, 30, 2]);
+        %影像處理 Start
         hText_thresholdgrayheader = uicontrol('style', 'text', ...
             'tag', 'ui4thresholdgrayheader', ...
             'horizontalalignment', 'left', ...
             'string', 'Gray Threshold', ...
             'unit','characters', ...
-            'position', [70, 15, 30, 2]);
+            'position', [70, 17, 30, 2]);
         hEdit_thresholdgray = uicontrol('style', 'edit', ...
             'tag', 'ui4thresholdgray', ...
             'string', threshold_gray, ...
             'unit','characters', ...
-            'position', [70, 13, 30, 2]);
+            'position', [70, 15, 30, 2]);
         hText_thresholdfilterheader = uicontrol('style', 'text', ...
-            'tag', 'ui4thresholdfilterheader', ...
+            'tag', 'ui4thresholdfilterheader', ...ru
             'horizontalalignment', 'left', ...
             'string', 'Filter Threshold', ...
             'unit','characters', ...
-            'position', [70, 11, 30, 2]);
+            'position', [70, 13, 30, 2]);
         hEdit_thresholdfilter = uicontrol('style', 'edit', ...
             'tag', 'ui4thresholdfilter', ...
             'string', threshold_filter, ...
             'unit','characters', ...
-            'position', [70, 9, 30, 2]);
+            'position', [70, 11, 30, 2]);
+        
+        hText_edgeheader = uicontrol('style', 'text', ...
+            'tag', 'ui4edgeheader', ...
+            'horizontalalignment', 'left', ...
+            'string', 'Edge', ...
+            'unit','characters', ...
+            'position', [70, 8, 12, 2]);   
+        
+        hText_edgeheader = uicontrol('style', 'edit', ...
+            'tag', 'ui4edge', ...
+            'string', '0', ...
+            'unit','characters', ...
+            'position', [82, 8, 14, 2]);            
+        
+        hText_ycutstartheader = uicontrol('style', 'text', ...
+            'tag', 'ui4ycutstartheader', ...
+            'horizontalalignment', 'left', ...
+            'string', 'Y Start (0~End)', ...
+            'unit','characters', ...
+            'position', [70, 6, 30, 2]);
+        hEdit_ycutstart = uicontrol('style', 'edit', ...
+            'tag', 'ui4ycutstart', ...
+            'string', y_start, ...
+            'unit','characters', ...
+            'position', [70, 4, 30, 2]);
+        hText_ycutendheader = uicontrol('style', 'text', ...
+            'tag', 'ui4ycutendheader', ...
+            'horizontalalignment', 'left', ...
+            'string', 'Y End (Start~12)', ...
+            'unit','characters', ...
+            'position', [70, 2, 30, 2]);
+        hEdit_ycutend = uicontrol('style', 'edit', ...
+            'tag', 'ui4ycutend', ...
+            'string', y_end, ...
+            'unit','characters', ...
+            'position', [70, 0, 30, 2]);
+        %影像處理 End        
         hText_pathheader = uicontrol('style', 'text', ...
             'tag', 'ui4pathheader', ...
             'horizontalalignment', 'left', ...
@@ -300,9 +351,10 @@ switch(action)
         %             'string', 'User Interface', ...
         %             'unit','characters', ...
         %             'position', [70, 23, 30, 2]);
+        %20200730 Pingchung 新增管理員權限
         hPopupMenu_user = uicontrol('style', 'popupmenu', ...
             'tag', 'ui4user', ...
-            'string', 'Operator|Engineer', ...
+            'string', 'Operator|Engineer|Administrator', ...
             'unit','characters', ...
             'position', [70, 23, 30, 2]);
         %         hText_interfaceheader = uicontrol('style', 'text', ...
@@ -315,7 +367,7 @@ switch(action)
             'tag', 'ui4interface', ...
             'string', 'Device Port|Device Command|Image Process|Test Mode', ...
             'unit','characters', ...
-            'position', [70, 18, 30, 2]);
+            'position', [70, 20, 30, 2]);
         hPopupMenu_number = uicontrol('style', 'popupmenu', ...
             'tag', 'ui4number', ...
             'string', 'Platform 0|Platform 1', ...
@@ -330,7 +382,7 @@ switch(action)
             'position', [70, 17, 30, 2]);
         hPopupMenu_wafertype = uicontrol('style', 'popupmenu', ...
             'tag', 'ui4wafertype', ...
-            'string', 'Notch Type|Flat Type', ...
+            'string', 'Notch Type|Flat Type|Circle Type', ...
             'unit','characters', ...
             'value',Num+1, ...
             'position', [70, 14, 30, 2]);
@@ -410,18 +462,30 @@ switch(action)
             'string', 'Max-Min', ...
             'unit','characters', ...
             'position', [145, 5, 35, 2]);
+        
+        %20200804 Pingchung 中心邊偏移量        
+        hText_Centeroffsetmm = uicontrol('style', 'text', ...
+            'tag', 'ui4centeroffsetmm', ...
+            'horizontalalignment', 'left', ...
+            'string', 'O Offset(mm):', ...
+            'unit','characters', ...
+            'position', [145, 5, 40, 2]);
+        
+        %Notch相對於平均中心點的偏移量
         hText_offsetmm = uicontrol('style', 'text', ...
             'tag', 'ui4resultoffsetmm', ...
             'horizontalalignment', 'left', ...
-            'string', 'Offset(mm):', ...
+            'string', 'N Offset(mm):', ...
             'unit','characters', ...
-            'position', [145, 3, 35, 2]);
+            'position', [145, 3, 40, 2]);
+        
+        %Notch相對於平均中心點的偏移角度
         hText_offsetdeg = uicontrol('style', 'text', ...
             'tag', 'ui4resultoffsetdeg', ...
             'horizontalalignment', 'left', ...
-            'string', 'Offset(deg):', ...
+            'string', 'N Offset(deg):', ...
             'unit','characters', ...
-            'position', [145, 1, 35, 2]);
+            'position', [145, 1, 40, 2]);
         hText_aligntime = uicontrol('style', 'text', ...
             'tag', 'ui4aligntime', ...
             'horizontalalignment', 'left', ...
@@ -781,6 +845,15 @@ switch(action)
         hPopupMenu_interface = findobj(0, 'tag', 'ui4interface');
         %         hText_imageprocessheader = findobj(0, 'tag', 'ui4imageprocessheader');
         %         hCheckBox_bwinverse = findobj(0, 'tag', 'ui4bwinverse');
+        hCheckBox_offlinemode = findobj(0, 'tag', 'ui4offlinemode');        %20200730 Pingchung add  
+        
+        %20200803 pingchung (超過offset超過0.5度是否停機)        
+        hCheckBox_overangleoffset = findobj(0, 'tag', 'ui4overoffsetthreshold');         
+        %20200803 pingchung 儲存原影像        
+        hCheckBox_saveoriginalimage = findobj(0, 'tag', 'ui4saveoriginalimage'); 
+        %20200804 pingchung 靜態量測           
+        hCheckBox_staticmeasure = findobj(0, 'tag', 'ui4staticmeasure');
+        %
         hText_thresholdgrayheader = findobj(0, 'tag', 'ui4thresholdgrayheader');
         hEdit_thresholdgray = findobj(0, 'tag', 'ui4thresholdgray');
         hText_thresholdfilterheader = findobj(0, 'tag', 'ui4thresholdfilterheader');
@@ -789,6 +862,8 @@ switch(action)
         hText_ycutstart = findobj(0, 'tag', 'ui4ycutstart');
         hText_ycutendheader = findobj(0, 'tag', 'ui4ycutendheader');
         hText_ycutend = findobj(0, 'tag', 'ui4ycutend');
+        hText_edgeheader = findobj(0, 'tag', 'ui4edgeheader');  
+        hText_edge= findobj(0, 'tag', 'ui4edge');          
         hText_cylinderportheader = findobj(0, 'tag', 'ui4cylinderportheader');
         hText_cylinderport = findobj(0, 'tag', 'ui4cylinderport');
         hText_alignerportheader = findobj(0, 'tag', 'ui4alignerportheader');
@@ -824,6 +899,11 @@ switch(action)
                 set(hPopupMenu_interface,'Visible','off');
                 %                 set(hText_imageprocessheader,'Visible','off');
                 %                 set(hCheckBox_bwinverse,'Visible','off');
+                set(hCheckBox_offlinemode,'Visible','off');     %20200730 Pingchung add
+                set(hCheckBox_overangleoffset,'Visible','off');     %20200803 Pingchung add    
+                set(hCheckBox_saveoriginalimage,'Visible','off');     %20200803 Pingchung add    
+                set(hCheckBox_staticmeasure,'Visible','off');     %20200803 Pingchung add                   
+                
                 set(hText_thresholdgrayheader,'Visible','off');
                 set(hEdit_thresholdgray,'Visible','off');
                 set(hText_thresholdfilterheader,'Visible','off');
@@ -832,6 +912,8 @@ switch(action)
                 set(hText_ycutstart,'Visible','off');
                 set(hText_ycutendheader,'Visible','off');
                 set(hText_ycutend,'Visible','off');
+                set(hText_edgeheader,'Visible','off');  
+                set(hText_edge,'Visible','off');                   
                 set(hText_cylinderportheader,'Visible','off');
                 set(hText_cylinderport,'Visible','off');
                 set(hText_alignerportheader,'Visible','off');
@@ -871,6 +953,10 @@ switch(action)
                 set(hText_param196,'Visible','off');
                 set(hPopupMenu_alignertype,'Visible','off');
                 set(hPopupMenu_wafertype,'Visible','off');
+                set(hCheckBox_offlinemode,'Visible','off');     %20200730 Pingchung add
+                set(hCheckBox_overangleoffset,'Visible','off');     %20200803 Pingchung add    
+                set(hCheckBox_saveoriginalimage,'Visible','off');     %20200803 Pingchung add    
+                set(hCheckBox_staticmeasure,'Visible','off');     %20200803 Pingchung add                    
                 switch get(hPopupMenu_interface, 'value')
                     case 1  %device port
                         %                         set(hText_imageprocessheader,'Visible','off');
@@ -883,6 +969,8 @@ switch(action)
                         set(hText_ycutstart,'Visible','off');
                         set(hText_ycutendheader,'Visible','off');
                         set(hText_ycutend,'Visible','off');
+                        set(hText_edgeheader,'Visible','off');  
+                        set(hText_edge,'Visible','off');                           
                         set(hText_cylinderportheader,'Visible','on');
                         set(hText_cylinderport,'Visible','on');
                         set(hText_alignerportheader,'Visible','on');
@@ -921,6 +1009,8 @@ switch(action)
                         set(hText_ycutstart,'Visible','off');
                         set(hText_ycutendheader,'Visible','off');
                         set(hText_ycutend,'Visible','off');
+                        set(hText_edgeheader,'Visible','off');  
+                        set(hText_edge,'Visible','off');                          
                         set(hText_cylinderportheader,'Visible','off');
                         set(hText_cylinderport,'Visible','off');
                         set(hText_alignerportheader,'Visible','off');
@@ -954,6 +1044,8 @@ switch(action)
                         set(hText_ycutstart,'Visible','on');
                         set(hText_ycutendheader,'Visible','on');
                         set(hText_ycutend,'Visible','on');
+                        set(hText_edgeheader,'Visible','on');  
+                        set(hText_edge,'Visible','on');                          
                         set(hText_cylinderportheader,'Visible','off');
                         set(hText_cylinderport,'Visible','off');
                         set(hText_alignerportheader,'Visible','off');
@@ -987,6 +1079,8 @@ switch(action)
                         set(hText_ycutstart,'Visible','off');
                         set(hText_ycutendheader,'Visible','off');
                         set(hText_ycutend,'Visible','off');
+                        set(hText_edgeheader,'Visible','off');  
+                        set(hText_edge,'Visible','off');                          
                         set(hText_cylinderportheader,'Visible','off');
                         set(hText_cylinderport,'Visible','off');
                         set(hText_alignerportheader,'Visible','off');
@@ -1016,6 +1110,54 @@ switch(action)
                 %                     case 2  %clamp
                 %                         set(hToggleButtun_cylinderinitial,'Visible','off');
                 %                 end
+            case 3  %administrator
+                set(hPopupMenu_interface,'Visible','off');
+
+                set(hCheckBox_offlinemode,'Visible','on');          %20200730 Pingchung add
+                set(hCheckBox_overangleoffset,'Visible','on');      %20200803 Pingchung add    
+                set(hCheckBox_saveoriginalimage,'Visible','on');    %20200803 Pingchung add    
+                set(hCheckBox_staticmeasure,'Visible','on');        %20200803 Pingchung add               
+                
+                set(hText_thresholdgrayheader,'Visible','off');
+                set(hEdit_thresholdgray,'Visible','off');
+                set(hText_thresholdfilterheader,'Visible','off');
+                set(hEdit_thresholdfilter,'Visible','off');
+                set(hText_ycutstartheader,'Visible','off');
+                set(hText_ycutstart,'Visible','off');
+                set(hText_ycutendheader,'Visible','off');
+                set(hText_ycutend,'Visible','off');
+                set(hText_edgeheader,'Visible','off');  
+                set(hText_edge,'Visible','off');                   
+                set(hText_cylinderportheader,'Visible','off');
+                set(hText_cylinderport,'Visible','off');
+                set(hText_alignerportheader,'Visible','off');
+                set(hText_alignerport,'Visible','off');
+                set(hText_cameraportheader,'Visible','off');
+                set(hText_cameraport,'Visible','off');
+
+                set(hPopupMenu_testmode,'Visible','off');
+                set(hText_offsetxheader,'Visible','off');
+                set(hEdit_x,'Visible','off');
+                set(hText_offsetyheader,'Visible','off');
+                set(hEdit_y,'Visible','off');
+                set(hText_offsetthetaheader,'Visible','off');
+                set(hEdit_theta,'Visible','off');
+                set(hToggleButtun_hold,'Visible','off');
+                set(hToggleButtun_release,'Visible','off');
+                set(hToggleButtun_move0,'Visible','off');
+                set(hToggleButtun_move1,'Visible','off');
+                set(hPopupMenu_number,'Visible','off');
+                set(hToggleButtun_communicate,'Visible','off');
+                set(hToggleButtun_calibrate,'Visible','off');
+                set(hText_param193,'Visible','off');
+                set(hText_param194,'Visible','off');
+                set(hText_param195,'Visible','off');
+                set(hText_param196,'Visible','off');
+                set(hPopupMenu_alignertype,'Visible','off');
+                set(hPopupMenu_wafertype,'Visible','off');
+                set(hText_cameraarcportheader,'Visible','off');
+                set(hEdit_cameraarcport,'Visible','off');                
+                
             otherwise
                 disp('Unknown option');
                 fclose(fid_log);
@@ -1538,6 +1680,9 @@ switch(action)
         end
     case 'capture'
         pause(1);
+        hCheckBox_offlinemode = findobj(0, 'tag', 'ui4offlinemode');                %20200730 Pingchung add        
+        hCheckBox_saveoriginalimage = findobj(0, 'tag', 'ui4saveoriginalimage');	%20200730 Pingchung add         
+        %
         hToggleButtun_capture = findobj(0, 'tag', 'ui4capture');
         %         hCheckBox_bwinverse = findobj(0, 'tag', 'ui4bwinverse');
         hEdit_ycutstart = findobj(0, 'tag', 'ui4ycutstart');
@@ -1552,18 +1697,25 @@ switch(action)
         hToggleButtun_communicate = findobj(0, 'tag', 'ui4communicate');
         hPopupMenu_wafertype = findobj(0, 'tag', 'ui4wafertype');
         hText_cameraarcport = findobj(0, 'tag', 'ui4cameraarcport');
+        hText_edge= findobj(0, 'tag', 'ui4edge');         
+        
+        pixelcounts = str2num(get(hText_edge,'String'));          
+        
         if get(hToggleButtun_capture,'Value') == 0
             fclose(fid_log);
             return;
         end
-        if get(hToggleButtun_communicate,'Value') == 0
-            set(hToggleButtun_capture,'Value',0);
-            current_situation = 'communication fail';
-            set(hText_currentsituation,'String',current_situation);
-            clock_log = clock;
-            fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-            fclose(fid_log);
-            return;
+        %20200730 Pingchung 離線模式不使用通訊功能          
+        if get(hCheckBox_offlinemode,'Value') == 0                          
+            if get(hToggleButtun_communicate,'Value') == 0
+                set(hToggleButtun_capture,'Value',0);
+                current_situation = 'communication fail';
+                set(hText_currentsituation,'String',current_situation);
+                clock_log = clock;
+                fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+                fclose(fid_log);
+                return;
+            end
         end
         %         selection = questdlg(['Capture?'],...
         %                      ['Capture...'],...
@@ -1587,24 +1739,35 @@ switch(action)
         %                 COM_camera = get(hText_cameraarcport,'String');
         %             end
         %         else
-        current_situation = 'camera capture';
-        set(hText_currentsituation,'String',current_situation);
-        clock_log = clock;
-        fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-        pause(0.001);
-        COM_camera = get(hText_cameraport,'String');
-        %         end
-        rslt = serial_cam_capture(COM_camera,Num);    %20171124
-        for n = 1:3
-            if rslt ~= 0
-                rslt = serial_cam_capture(COM_camera,Num);
-            end
+        
+        if  get(hCheckBox_offlinemode,'Value') == 0   
+            current_situation = 'camera capture';
+            set(hText_currentsituation,'String',current_situation);
+            clock_log = clock;
+            fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
             pause(0.001);
-            if get(hToggleButtun_capture,'Value') == 0
-                fclose(fid_log);
-                return;
+            COM_camera = get(hText_cameraport,'String');
+            %         end
+            rslt = serial_cam_capture(COM_camera,Num);    %20171124
+            for n = 1:3
+                if rslt ~= 0
+                    rslt = serial_cam_capture(COM_camera,Num);
+                end
+                pause(0.001);
+                if get(hToggleButtun_capture,'Value') == 0
+                    fclose(fid_log);
+                    return;
+                end
             end
+        else    %get(hCheckBox_offlinemode,'Value') ~= 0 (Offline mode)
+            rslt = 0;
+            current_situation = 'Offline Mode Read Image';
+            set(hText_currentsituation,'String',current_situation);
+            clock_log = clock;
+            fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);                        
         end
+        
+        
         if rslt == 0
             current_situation = 'image process';
             set(hText_currentsituation,'String',current_situation);
@@ -1614,6 +1777,15 @@ switch(action)
             % 讀取
             try
                 pic = imread(['img',num2str(Num),'\acc',num2str(Num),'.bmp']);
+                
+                if get(hCheckBox_saveoriginalimage, 'Value') == 1
+                    formatOut = 'yyyymmdd';
+                    filepath = datestr(now,formatOut);
+                    mkdir(filepath);
+                    formatOut = 'HHMMSSFFF';
+                    filename = datestr(now,formatOut);
+                    imwrite(pic,[filepath,'\' filename,'.bmp']);
+                end
             catch
                 aligner_autotest_calibration('capture');
                 fclose(fid_log);
@@ -1666,7 +1838,54 @@ switch(action)
         else
             imagen = 0;
         end
-        hImage = imshow(imagen); % see the result
+        
+        if pixelcounts > 0
+            se1=strel('disk',pixelcounts);%這裡是建立一個半徑為pixelcounts的平坦型圓盤結構元素
+            imagen=imopen(imagen,se1);
+            imagen=imclose(imagen,se1);        
+        end
+        
+        %僅保留最大寬度的blob
+        measurements = regionprops(imagen, 'BoundingBox');
+        BlobCount = length(measurements);
+        if BlobCount ~= 1   %查詢行數
+            thisBB = measurements(1).BoundingBox;
+            MaxBlobWidth = thisBB(3);
+            for k = 1:BlobCount
+                nowBB = measurements(k).BoundingBox;
+                if nowBB(3) < MaxBlobWidth
+                    %寬度保護
+                    Left = round(nowBB(1));
+                    if Left < 0 
+                        Left = 0; 
+                    end
+                     %寬度保護
+                    Width = round(nowBB(1) + nowBB(3));
+                    if Width > size(imagen,2)
+                       Width = size(imagen,2); 
+                    end
+                    %高度保護
+                    Top = round(nowBB(2));
+                    if Top < 0 
+                        Top = 0; 
+                    end
+                    %高度保護
+                    Height = round(nowBB(2) + nowBB(4));
+                    if Height > size(imagen,1) 
+                        Height = size(imagen,1); 
+                    end  
+                    
+                    for i = Left:Width
+                        for j = Top:Height
+                            imagen(j,i) = 0;
+                        end
+                    end
+                end                 
+            end
+         end
+        
+        
+        hImage = imshow(imagen); % see the result        
         set(hImage,'Tag', 'ui4image');
         axis on;
         grid on;
@@ -1676,7 +1895,10 @@ switch(action)
         set(hText_currentsituation,'String',current_situation);
         clock_log = clock;
         fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+        
     case 'calculate'
+        hCheckBox_offlinemode = findobj(0, 'tag', 'ui4offlinemode');        %20200730 Pingchung add          
+        %
         hToggleButtun_capture = findobj(0, 'tag', 'ui4capture');
         hToggleButtun_calculate = findobj(0, 'tag', 'ui4calculate');
         hEdit_waferradius = findobj(0, 'tag', 'ui4waferradius');
@@ -1686,6 +1908,8 @@ switch(action)
         hText_notchy = findobj(0, 'tag', 'ui4notchy');
         hText_currentsituation = findobj(0, 'tag', 'ui4currentsituation');
         hPopupMenu_wafertype = findobj(0, 'tag', 'ui4wafertype');
+        
+        hImage = findobj('tag', 'ui4image');        
         
         if get(hToggleButtun_calculate,'Value') == 0
             fclose(fid_log);
@@ -1715,17 +1939,30 @@ switch(action)
             return;
         end
         %         edge = zeros(imagen(1,:));
+        %         edge[i] = j;  i值為x,j為y        
         edge = [];
         for i= 1:size(imagen,2)
             for j=1:size(imagen,1)
-                %                if imagen(size(imagen,1)+1-j,i) == 1  %0
-                %                    edge(i) = size(imagen,1)+1-j;
+%                                if imagen(size(imagen,1)+1-j,i) == 1  %0
+%                                    edge(i) = size(imagen,1)+1-j;
                 if imagen(j,i) == 1  %0
                     edge(i) = j;
                     break;
                 end
             end
         end
+        
+        %邊界下緣
+        lower_edge = [];
+        for i= 1:size(imagen,2)
+            for j=1:size(imagen,1)
+                if imagen(size(imagen,1)+1-j,i) == 1  %0
+                    lower_edge(i) = size(imagen,1)+1-j;
+
+                    break;
+                end
+            end
+        end        
         if isempty(edge)
             current_situation = 'picture edge error';
             set(hText_currentsituation,'String',current_situation);
@@ -1734,6 +1971,7 @@ switch(action)
             fclose(fid_log);
             return;
         end
+       
         %         syms  x0 y0 y1 y2
         %         S=solve(['(1-x0)^2+(y1-y0)^2=(',num2str(waferRadius),'*300/1.67)^2'],['(3840-x0)^2+(y2-y0)^2=(',num2str(waferRadius),'*300/1.67)^2']);
         %         S=[S.x0 S.y0];
@@ -1746,15 +1984,16 @@ switch(action)
         %             y0 = S(2,2);
         %         end
         
-        if (get(hPopupMenu_wafertype,'value')-1)
-            y_angle = size(imagen,1);
-            cnt_y_angle = 0;
-            for i= 1+5:size(imagen,2)-5
+        %if (get(hPopupMenu_wafertype,'value')-1)
+        if (get(hPopupMenu_wafertype,'value') == 2)     % Flat Type            
+            y_angle = size(imagen,1);       %影像高度
+            cnt_y_angle = 0;                
+            for i= 1+5:size(imagen,2)-5     %影像寬度(從5 ~ Width -5開始計算)
                 edge_temp = 0;
                 for j = -5:5
                     edge_temp = edge_temp+edge(i+j);
                 end
-                edge_temp = edge_temp/11;
+                edge_temp = edge_temp/11;   
                 if edge_temp < y_angle
                     y_angle = edge_temp;
                     point(1) = i;
@@ -1854,7 +2093,7 @@ switch(action)
             end
             point(2) = p_line(1)*point(1)+p_line(2);
             
-        else
+        else % Notch Type | Circle Type  
             x1 = 1;
             x2 = size(imagen,2);
             y1 = edge(x1);
@@ -1876,36 +2115,156 @@ switch(action)
                 x0 = (x1+x2)/2;
                 y0 = y1+(r^2-(x0-x1)^2)^0.5;
             end
+             
+% 
+%              Px(1) = 1;
+%              Py(1) = edge(Px(1));   
+%              
+%              Px(2) = size(imagen,2);
+%              Py(2) = edge(Px(2));
+%              
+%              Px(3) = round((Px(1)+Px(2))/2);
+%              Py(3) = edge(Px(3));  
+%              
+%              Px(4) = round((Px(1)+Px(3))/2);
+%              Py(4) = edge(Px(4));   
+%              
+%              Px(5) = round(((Px(1)+Px(2))/2) + ((Px(2) - Px(1))/4));
+%              Py(5) = edge(Px(5));   
+%              
+%              r = waferRadius*300/1.67;
+% 
+%              n=0;
+%              for i=1:length(Px)
+%                 for j=1:length(Py)
+%                     if i~=j
+%                         n = n + 1;
+%                     
+%                         if Py(i) ~= Py(j)
+%                             k1 = (Px(i)-Px(j))/(Py(i)-Py(j));
+%                             k2 = ((Px(i)^2-Px(j)^2)+(Py(i)^2-Py(j)^2))/(2*(Py(i)-Py(j)));
+% 
+%                             a = 1+k1^2;
+%                             b = -2*Px(i)-2*k1*k2+2*k1*Py(i);
+%                             c = Px(i)^2+k2^2-2*k2*Py(j)+Py(j)^2-r^2;  
+% 
+%                             X0(n) = (-b+(b^2-4*a*c)^0.5)/(2*a);
+%                             Y0(n) = -k1*X0(n)+k2;
+%                             if Y0(n) < 0
+%                                 X0(n) = (-b-(b^2-4*a*c)^0.5)/(2*a);
+%                                 Y0(n) = -k1*X0(n)+k2; 
+%                             end
+%                         else
+%                             X0(n) = (Px(i)+Px(j))/2;
+%                             Y0(n) = Py(i)+(r^2-(X0(n)-Px(i))^2)^0.5;
+%                         end
+%                     end
+%                 end
+%              end
+%              x0 = median(X0);
+%              y0 = median(Y0);
+
+% % %             x_circle = 1:size(imagen,2);
+% % %             y_circle = edge;
+% % %             
+% % %             p_circle = Circle_Fitting(x_circle,y_circle);
+% % %             x0 = p_circle(1);
+% % %             y0 = p_circle(2);             
+% % %              
+            point(1) = 0;
+            point(2) = 0;              
             
-            radius_notch = waferRadius*300/1.67;
-            for i= 1:size(imagen,2)
-                if i>50 && i<= size(imagen,2)-50
-                    if ((i-x0)^2+((edge(i+50)+edge(i-50))/2-y0)^2)^0.5 < radius_notch
-                        point = [i,(edge(i+50)+edge(i-50))/2];
-                        radius_notch = ((point(1)-x0)^2+(point(2)-y0)^2)^0.5;
-                    end
-                else
-                    if ((i-x0)^2+(edge(i)-y0)^2)^0.5 < radius_notch
-                        point = [i,edge(i)];
-                        radius_notch = ((point(1)-x0)^2+(point(2)-y0)^2)^0.5;
+            %20200803 Pingchung 改寫尋找Notch的演算法            
+            %Circle 無須尋找Notch
+            if (get(hPopupMenu_wafertype,'value') == 1)     % Notch Type
+                %Min_r(最小的r)
+                min_r = (1-x0)^2 + (lower_edge(1) - y0)^2
+                for i = 1:size(imagen,2) 
+                    if((i-x0)^2 + (lower_edge(i) - y0)^2 < min_r)
+                        min_r = (i-x0)^2 + (lower_edge(i) - y0)^2;
                     end
                 end
+
+                min_r_xgroup = [];
+                min_r_ygroup = [];            
+                for i = 1:size(imagen,2) 
+                    if((i-x0)^2 + (lower_edge(i) - y0)^2 == min_r)
+                        groupsize = size(min_r_xgroup);
+                        min_r_xgroup(groupsize+1) = i;
+                        min_r_ygroup(groupsize+1) = lower_edge(i);                     
+                    end
+                end
+
+                if size(min_r_ygroup) == 1
+                    point(1) = min_r_xgroup(1);
+                    point(2) = min_r_ygroup(1);                 
+                else
+                    sumx = 0;
+                    sumy = 0;                
+                    for i=1:size(min_r_ygroup)
+                        sumx = sumx + min_r_xgroup(i);
+                        sumy = sumy + min_r_ygroup(i);                    
+                    end
+
+                    point(1) = sumx/size(min_r_xgroup);
+                    point(2) = sumy/size(min_r_ygroup);                  
+
+                end
             end
-            point = [x0,y0]+(point-[x0,y0])*waferRadius*300/1.67/radius_notch;
             point0 = point;
             
-            point = [round(point(1)),edge(round(point(1)))];
-            yi = point(1)-200;
-            xi = (edge(point(1)-200+50)-edge(point(1)-200-50))/100;
-            yi1 = point(1);
-            xi1 = (edge(point(1)+50)-edge(point(1)-50))/100;
-            yi2 = point(1)+200;
-            xi2 = (edge(point(1)+200+50)-edge(point(1)+200-50))/100;
-            x = (-1)/((point(2)-y0)/(point(1)-x0));
-            y = ((yi*(x-xi1)*(x-xi2)*(xi1-xi)*(xi1-xi2)*(xi2-xi)*(xi2-xi1)+yi1*(x-xi)*(x-xi2)*(xi-xi1)*(xi-xi2)*(xi2-xi)*(xi2-xi1)+yi2*(x-xi)*(x-xi1)*(xi-xi1)*(xi-xi2)*(xi1-xi)*(xi1-xi2))/((xi-xi1)*(xi-xi2)*(xi1-xi)*(xi1-xi2)*(xi2-xi)*(xi2-xi1)));
-            point = [round(y),edge(round(y))];
-            radius_notch = ((point(1)-x0)^2+(point(2)-y0)^2)^0.5;
-            point = [x0,y0]+(point-[x0,y0])*waferRadius*300/1.67/radius_notch;
+            
+            
+%             radius_notch = waferRadius*300/1.67;
+%             for i= 1:size(imagen,2)
+%                 if i>50 && i<= size(imagen,2)-50
+%                     if ((i-x0)^2+((edge(i+50)+edge(i-50))/2-y0)^2)^0.5 < radius_notch
+%                         point = [i,(edge(i+50)+edge(i-50))/2];
+%                         radius_notch = ((point(1)-x0)^2+(point(2)-y0)^2)^0.5;
+%                     end
+%                 else
+%                     if ((i-x0)^2+(edge(i)-y0)^2)^0.5 < radius_notch
+%                         point = [i,edge(i)];
+%                         radius_notch = ((point(1)-x0)^2+(point(2)-y0)^2)^0.5;
+%                     end
+%                 end
+%             end
+%             point = [x0,y0]+(point-[x0,y0])*waferRadius*300/1.67/radius_notch;
+%             point0 = point;
+%
+
+%             current_situation = 'calculate final data';
+%             set(hText_currentsituation,'String',current_situation);
+%             
+%             point = [round(point0(1)),edge(round(point0(1)))];
+%             
+%             current_situation = 'calculate final data_1';
+%             set(hText_currentsituation,'String',current_situation);
+%             
+%             yi = point(1)-200;
+%             xi = (edge(point(1)-200+50)-edge(point(1)-200-50))/100;
+%             yi1 = point(1);
+%             xi1 = (edge(point(1)+50)-edge(point(1)-50))/100;
+%             yi2 = point(1)+200;
+%             xi2 = (edge(point(1)+200+50)-edge(point(1)+200-50))/100;
+%             x = (-1)/((point(2)-y0)/(point(1)-x0));
+%             
+%             y = ((yi*(x-xi1)*(x-xi2)*(xi1-xi)*(xi1-xi2)*(xi2-xi)*(xi2-xi1)+yi1*(x-xi)*(x-xi2)*(xi-xi1)*(xi-xi2)*(xi2-xi)*(xi2-xi1)+yi2*(x-xi)*(x-xi1)*(xi-xi1)*(xi-xi2)*(xi1-xi)*(xi1-xi2))/((xi-xi1)*(xi-xi2)*(xi1-xi)*(xi1-xi2)*(xi2-xi)*(xi2-xi1)));
+%             
+%             current_situation = 'calculate final data_2';
+%             set(hText_currentsituation,'String',current_situation);
+%             
+%             point = [round(y),edge(round(y))];
+%             
+%             current_situation = 'calculate final data_3';
+%             set(hText_currentsituation,'String',current_situation);    
+%             
+%             radius_notch = ((point(1)-x0)^2+(point(2)-y0)^2)^0.5;
+%             
+%             current_situation = 'calculate final data_4';
+%             set(hText_currentsituation,'String',current_situation);  
+%             
+%             point = [x0,y0]+(point-[x0,y0])*waferRadius*300/1.67/radius_notch;
             
             theta = 0;
             theta1 = 0;
@@ -1921,6 +2280,15 @@ switch(action)
         set(hText_currentsituation,'String',current_situation);
         clock_log = clock;
         fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+        
+        %離線版寫入log
+        if  get(hCheckBox_offlinemode,'Value') == 1   
+            [fid,errmsg] = fopen( 'Datalog.csv', 'a') ;
+            fprintf(fid, '%s,%s,%s,%s',num2str(x0*1.67/300), num2str(y0*1.67/300), num2str(point(1)*1.67/300), num2str(point(2)*1.67/300)) ;
+            fprintf(fid, '\r\n') ;            
+            fclose(fid); 
+            
+        end
     case 'calibrate'
         hToggleButtun_calibrate = findobj(0, 'tag', 'ui4calibrate');
         hText_param193 = findobj(0, 'tag', 'ui4param193');
@@ -2220,6 +2588,11 @@ switch(action)
         %         return;
     case 'run'
         try
+            %20200803 pingchung (超過offset超過0.5度是否停機)        
+            hCheckBox_overangleoffset = findobj(0, 'tag', 'ui4overoffsetthreshold');        %20200730 Pingchung add 
+            hCheckBox_staticmeasure = findobj(0, 'tag', 'ui4staticmeasure');                %20200804 Pingchung add 
+            hCheckBox_offlinemode = findobj(0, 'tag', 'ui4offlinemode');
+        
             hToggleButtun_run = findobj(0, 'tag', 'ui4run');
             hToggleButtun_align = findobj(0, 'tag', 'ui4align');
             hToggleButtun_capture = findobj(0, 'tag', 'ui4capture');
@@ -2245,8 +2618,13 @@ switch(action)
             hText_centeryaverage = findobj(0, 'tag', 'ui4centeryaverage');
             hText_notchxaverage = findobj(0, 'tag', 'ui4notchxaverage');
             hText_notchyaverage = findobj(0, 'tag', 'ui4notchyaverage');
+            %Notch相對於平均中心點偏移量(mm)
             hText_offsetmm = findobj(0, 'tag', 'ui4resultoffsetmm');
+            %Notch相對於平均中心點偏移量(deg)
             hText_offsetdeg = findobj(0, 'tag', 'ui4resultoffsetdeg');
+            %Center偏移量(mm)
+            hText_Centeroffsetmm = findobj(0, 'tag', 'ui4centeroffsetmm');
+            
             hText_fqc = findobj(0, 'tag', 'ui4fqc');
             hText_fqc1 = findobj(0, 'tag', 'ui4fqc1');
             hText_fqc2 = findobj(0, 'tag', 'ui4fqc2');
@@ -2291,8 +2669,8 @@ switch(action)
             COM_cylinder = get(hText_cylinderport,'String');
             COM_aligner = get(hText_alignerport,'String');
             hToggleButtun_communicate = findobj(0, 'tag', 'ui4communicate');
-            MeasureUtility.Reset_All();
-            Measure_aUtility.Reset_All();
+            MeasureUtility.Reset_All();     %清除測試結果
+            Measure_aUtility.Reset_All();   %清除測試結果
             ttlStart = tic;
             [status, msg, msgID] = mkdir(get(hEdit_path, 'string'));
             for n = 0:testCount
@@ -2303,323 +2681,237 @@ switch(action)
                     fclose(fid_log);
                     return;
                 end
-                if get(hToggleButtun_communicate,'Value') == 0
-                    set(hToggleButtun_run,'Value',0);
-                    current_situation = 'communication fail';
-                    set(hText_currentsituation,'String',current_situation);
-                    clock_log = clock;
-                    fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-                    fclose(fid_log);
-                    return;
-                end
                 
-                %             aligner_autotest_calibration('movex');
-                if get(hPopupMenu_testmode, 'value') < 4
-                    if n~= 0
-                        current_situation = 'move wafer to the position';
+                %20200804 Pingchung Offline
+                if get(hCheckBox_offlinemode,'Value') == 0
+                    if get(hToggleButtun_communicate,'Value') == 0
+                        set(hToggleButtun_run,'Value',0);
+                        current_situation = 'communication fail';
                         set(hText_currentsituation,'String',current_situation);
                         clock_log = clock;
                         fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-                        pause(0.001);
-                        
-                        t = get(hToggleButtun_align,'Userdata');
-                        ack = t{1};
-                        if strncmp(ack, '$1FIN:ALIGN:00000000', 20)
-                            offsetX = round(str2num(get(hEdit_x, 'string')));
-                            offsetY = round(str2num(get(hEdit_y, 'string')));
-                            offsetTheta = round(str2num(get(hEdit_theta, 'string')));
-                            if (get(hPopupMenu_testmode, 'value') ~= 2 && (offsetX > 8000 || offsetY > 8000)) || (get(hPopupMenu_testmode, 'value') == 2 && offsetX > 8000)
-                                current_situation = 'test mode range error';
-                                set(hText_currentsituation,'String',current_situation);
-                                clock_log = clock;
-                                fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-                                fclose(fid_log);
-                                return;
-                            end
-                            
-                            if get(hPopupMenu_alignertype,'Value') == 1
-                                [rslt,ack] = serial_command('$1CMD:WRLS_:1',COM_aligner); %RELEASE WAFER
-                                %           pause(1);
-                                if rslt ~= 0
-                                    [rslt,ack] = serial_command('$1CMD:WRLS_:1',COM_aligner); %RELEASE WAFER
-                                    if rslt ~= 0
-                                        current_situation = 'wafer release fail';
-                                        set(hText_currentsituation,'String',current_situation);
-                                        clock_log = clock;
-                                        fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-                                        fclose(fid_log);
-                                        return;
-                                    end
-                                end
-                                [rslt,ack] = serial_z(4,COM_cylinder);
-                                pause(2);
-                            end
-                            
-                            [rslt,ack] = serial_command('$1CMD:HOME_',COM_aligner);    %HOME
-                            % 20191024 by ethan
-                            if get(hPopupMenu_alignertype,'Value') == 1
-                                aligner_autotest_calibration('movexforward');
-                            end
-                            
-                            if get(hPopupMenu_alignertype,'Value') == 1
-                                [rslt,ack] = serial_z(3,COM_cylinder);
-                                [rslt,ack] = serial_command('$1CMD:WHLD_:1',COM_aligner); %HOLD WAFER
-                                pause(2);
-                            else
-                                [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
-                                [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
-                                [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
-                            end
-                            
-                            switch get(hPopupMenu_testmode, 'value')
-                                case 1  %fix
-                                    if get(hPopupMenu_alignertype,'Value') == 1
-                                        [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta,360000))],COM_aligner);
-                                    else
-                                        if (rem(rem(offsetTheta,360000),120000) < 30000 && rem(rem(offsetTheta,360000),120000) >= 0) || (rem(rem(offsetTheta,360000),120000) < -90000 && rem(rem(offsetTheta,360000),120000) < 0)
-                                            [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta,360000)+30000)],COM_aligner);
-                                            [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
-                                            [rslt,ack] = serial_command('$1CMD:MOVED:5,2,+00002000',COM_aligner);    %X CLAMP
-                                            [rslt,ack] = serial_command('$1CMD:MOVED:4,2,+00006000',COM_aligner);    %Z UP
-                                            [rslt,ack] = serial_command('$1CMD:HOME_',COM_aligner);    %HOME
-                                            [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
-                                            [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
-                                            [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
-                                            [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(-30000)],COM_aligner);
-                                        else
-                                            [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta,360000))],COM_aligner);
-                                        end
-                                    end
-                                    if get(hPopupMenu_alignertype,'Value') == 1
-                                        [rslt,ack] = serial_command('$1CMD:WRLS_:1',COM_aligner); %RELEASE WAFER
-                                        if rslt ~= 0
-                                            [rslt,ack] = serial_command('$1CMD:WRLS_:1',COM_aligner); %RELEASE WAFER
-                                            if rslt ~= 0
-                                                current_situation = 'wafer release fail';
-                                                set(hText_currentsituation,'String',current_situation);
-                                                clock_log = clock;
-                                                fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-                                                fclose(fid_log);
-                                                return;
-                                            end
-                                        end
-                                        [rslt,ack] = serial_z(4,COM_cylinder);
-                                        pause(2);
-                                        [rslt,ack] = serial_command(['$1CMD:MOVED:1,2,' num2str(rem(offsetX,8000))],COM_aligner);
-                                        [rslt,ack] = serial_command(['$1CMD:MOVED:2,2,' num2str(rem(offsetY,8000))],COM_aligner);
-                                    end
-                                case 2  %step offset
-                                    if get(hPopupMenu_alignertype,'Value') == 1
-                                        [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta,360000))],COM_aligner);
-                                    else
-                                        if (rem(rem(offsetTheta,360000),120000) < 30000 && rem(rem(offsetTheta,360000),120000) >= 0) || (rem(rem(offsetTheta,360000),120000) < -90000 && rem(rem(offsetTheta,360000),120000) < 0)
-                                            [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta,360000)+30000)],COM_aligner);
-                                            [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
-                                            [rslt,ack] = serial_command('$1CMD:MOVED:5,2,+00002000',COM_aligner);    %X CLAMP
-                                            [rslt,ack] = serial_command('$1CMD:MOVED:4,2,+00006000',COM_aligner);    %Z UP
-                                            [rslt,ack] = serial_command('$1CMD:HOME_',COM_aligner);    %HOME
-                                            [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
-                                            [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
-                                            [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
-                                            [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(-30000)],COM_aligner);
-                                        else
-                                            [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta,360000))],COM_aligner);
-                                        end
-                                    end
-                                    if get(hPopupMenu_alignertype,'Value') == 1
-                                        [rslt,ack] = serial_command('$1CMD:WRLS_:1',COM_aligner); %RELEASE WAFER
-                                        if rslt ~= 0
-                                            [rslt,ack] = serial_command('$1CMD:WRLS_:1',COM_aligner); %RELEASE WAFER
-                                            if rslt ~= 0
-                                                current_situation = 'wafer release fail';
-                                                set(hText_currentsituation,'String',current_situation);
-                                                clock_log = clock;
-                                                fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-                                                fclose(fid_log);
-                                                return;
-                                            end
-                                        end
-                                        [rslt,ack] = serial_z(4,COM_cylinder);
-                                        pause(2);
-                                        [rslt,ack] = serial_command(['$1CMD:MOVED:1,2,' num2str(round(rem(offsetX*cos(offsetY*n*pi/180000),8000)))],COM_aligner);
-                                        [rslt,ack] = serial_command(['$1CMD:MOVED:2,2,' num2str(round(rem(offsetX*sin(offsetY*n*pi/180000),8000)))],COM_aligner);
-                                    end
-                                case 3  %step notch
-                                    if get(hPopupMenu_alignertype,'Value') == 1
-                                        [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta*n,360000))],COM_aligner);
-                                    else
-                                        if (rem(rem(offsetTheta*n,360000),120000) < 30000 && rem(rem(offsetTheta*n,360000),120000) >= 0) || (rem(rem(offsetTheta*n,360000),120000) < -90000 && rem(rem(offsetTheta*n,360000),120000) < 0)
-                                            [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta*n,360000)+30000)],COM_aligner);
-                                            [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
-                                            [rslt,ack] = serial_command('$1CMD:MOVED:5,2,+00002000',COM_aligner);    %X UnCLAMP
-                                            [rslt,ack] = serial_command('$1CMD:MOVED:4,2,+00006000',COM_aligner);    %Z UP
-                                            [rslt,ack] = serial_command('$1CMD:HOME_',COM_aligner);    %HOME
-                                            [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
-                                            [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
-                                            [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
-                                            [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(-30000)],COM_aligner);
-                                        else
-                                            [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta*n,360000))],COM_aligner);
-                                        end
-                                    end
-                                    if get(hPopupMenu_alignertype,'Value') == 1
-                                        [rslt,ack] = serial_command('$1CMD:WRLS_:1',COM_aligner); %RELEASE WAFER
-                                        if rslt ~= 0
-                                            [rslt,ack] = serial_command('$1CMD:WRLS_:1',COM_aligner); %RELEASE WAFER
-                                            if rslt ~= 0
-                                                current_situation = 'wafer release fail';
-                                                set(hText_currentsituation,'String',current_situation);
-                                                clock_log = clock;
-                                                fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-                                                fclose(fid_log);
-                                                return;
-                                            end
-                                        end
-                                        [rslt,ack] = serial_z(4,COM_cylinder);
-                                        pause(2);
-                                        [rslt,ack] = serial_command(['$1CMD:MOVED:1,2,' num2str(rem(offsetX,8000))],COM_aligner);
-                                        [rslt,ack] = serial_command(['$1CMD:MOVED:2,2,' num2str(rem(offsetY,8000))],COM_aligner);
-                                    end
-                                otherwise
-                                    disp('Unknown option');
+                        fclose(fid_log);
+                        return;
+                    end
+                end
+                if(get(hCheckBox_staticmeasure, 'value') == 0)
+                    %aligner_autotest_calibration('movex');
+                    if get(hPopupMenu_testmode, 'value') < 4
+                        if n~= 0
+                            current_situation = 'move wafer to the position';
+                            set(hText_currentsituation,'String',current_situation);
+                            clock_log = clock;
+                            fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+                            pause(0.001);
+
+                            t = get(hToggleButtun_align,'Userdata');
+                            ack = t{1};
+                            if strncmp(ack, '$1FIN:ALIGN:00000000', 20) %比對ack與'$1FIN:ALIGN:00000000'前20個字元，相同return 1,不同 return 0
+                                offsetX = round(str2num(get(hEdit_x, 'string')));
+                                offsetY = round(str2num(get(hEdit_y, 'string')));
+                                offsetTheta = round(str2num(get(hEdit_theta, 'string')));
+                                if (get(hPopupMenu_testmode, 'value') ~= 2 && (offsetX > 8000 || offsetY > 8000)) || (get(hPopupMenu_testmode, 'value') == 2 && offsetX > 8000)
+                                    current_situation = 'test mode range error';
+                                    set(hText_currentsituation,'String',current_situation);
+                                    clock_log = clock;
+                                    fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
                                     fclose(fid_log);
                                     return;
-                            end
-                            
-                            if get(hPopupMenu_alignertype,'Value') == 1
-                                [rslt,ack] = serial_z(3,COM_cylinder);
-                                [rslt,ack] = serial_command('$1CMD:WHLD_:1',COM_aligner); %HOLD WAFER
-                                pause(2);
-                            else
-                                [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
-                                [rslt,ack] = serial_command('$1CMD:MOVED:5,2,+00002000',COM_aligner);    %X CLAMP
-                                [rslt,ack] = serial_command('$1CMD:MOVED:4,2,+00006000',COM_aligner);    %Z UP
+                                end
+
+                                if get(hPopupMenu_alignertype,'Value') == 1     %Vacuum type
+                                    [rslt,ack] = serial_command('$1CMD:WRLS_:1',COM_aligner); %RELEASE WAFER
+                                    %           pause(1);
+                                    if rslt ~= 0
+                                        [rslt,ack] = serial_command('$1CMD:WRLS_:1',COM_aligner); %RELEASE WAFER
+                                        if rslt ~= 0
+                                            current_situation = 'wafer release fail';
+                                            set(hText_currentsituation,'String',current_situation);
+                                            clock_log = clock;
+                                            fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+                                            fclose(fid_log);
+                                            return;
+                                        end
+                                    end
+                                    [rslt,ack] = serial_z(4,COM_cylinder);  %1MOVE
+                                    pause(2);
+                                end
+
                                 [rslt,ack] = serial_command('$1CMD:HOME_',COM_aligner);    %HOME
+                                % 20191024 by ethan
+                                if get(hPopupMenu_alignertype,'Value') == 1
+                                    aligner_autotest_calibration('movexforward');
+                                end
+
+                                if get(hPopupMenu_alignertype,'Value') == 1     %Vacuum type
+                                    [rslt,ack] = serial_z(3,COM_cylinder);      %0MOVE
+                                    [rslt,ack] = serial_command('$1CMD:WHLD_:1',COM_aligner); %HOLD WAFER
+                                    pause(2);
+                                else
+                                    [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
+                                    [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
+                                    [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
+                                end
+
+                                switch get(hPopupMenu_testmode, 'value')
+                                    case 1  %fix
+                                        if get(hPopupMenu_alignertype,'Value') == 1     %Vacuum type
+                                            [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta,360000))],COM_aligner);
+                                        else
+                                            if (rem(rem(offsetTheta,360000),120000) < 30000 && rem(rem(offsetTheta,360000),120000) >= 0) || (rem(rem(offsetTheta,360000),120000) < -90000 && rem(rem(offsetTheta,360000),120000) < 0)
+                                                [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta,360000)+30000)],COM_aligner);
+                                                [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
+                                                [rslt,ack] = serial_command('$1CMD:MOVED:5,2,+00002000',COM_aligner);    %X CLAMP
+                                                [rslt,ack] = serial_command('$1CMD:MOVED:4,2,+00006000',COM_aligner);    %Z UP
+                                                [rslt,ack] = serial_command('$1CMD:HOME_',COM_aligner);    %HOME
+                                                [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
+                                                [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
+                                                [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
+                                                [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(-30000)],COM_aligner);
+                                            else
+                                                [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta,360000))],COM_aligner);
+                                            end
+                                        end
+                                        if get(hPopupMenu_alignertype,'Value') == 1
+                                            [rslt,ack] = serial_command('$1CMD:WRLS_:1',COM_aligner); %RELEASE WAFER
+                                            if rslt ~= 0
+                                                [rslt,ack] = serial_command('$1CMD:WRLS_:1',COM_aligner); %RELEASE WAFER
+                                                if rslt ~= 0
+                                                    current_situation = 'wafer release fail';
+                                                    set(hText_currentsituation,'String',current_situation);
+                                                    clock_log = clock;
+                                                    fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+                                                    fclose(fid_log);
+                                                    return;
+                                                end
+                                            end
+                                            [rslt,ack] = serial_z(4,COM_cylinder);
+                                            pause(2);
+                                            [rslt,ack] = serial_command(['$1CMD:MOVED:1,2,' num2str(rem(offsetX,8000))],COM_aligner);
+                                            [rslt,ack] = serial_command(['$1CMD:MOVED:2,2,' num2str(rem(offsetY,8000))],COM_aligner);
+                                        end
+                                    case 2  %step offset
+                                        if get(hPopupMenu_alignertype,'Value') == 1
+                                            [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta,360000))],COM_aligner);
+                                        else
+                                            if (rem(rem(offsetTheta,360000),120000) < 30000 && rem(rem(offsetTheta,360000),120000) >= 0) || (rem(rem(offsetTheta,360000),120000) < -90000 && rem(rem(offsetTheta,360000),120000) < 0)
+                                                [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta,360000)+30000)],COM_aligner);
+                                                [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
+                                                [rslt,ack] = serial_command('$1CMD:MOVED:5,2,+00002000',COM_aligner);    %X CLAMP
+                                                [rslt,ack] = serial_command('$1CMD:MOVED:4,2,+00006000',COM_aligner);    %Z UP
+                                                [rslt,ack] = serial_command('$1CMD:HOME_',COM_aligner);    %HOME
+                                                [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
+                                                [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
+                                                [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
+                                                [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(-30000)],COM_aligner);
+                                            else
+                                                [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta,360000))],COM_aligner);
+                                            end
+                                        end
+                                        if get(hPopupMenu_alignertype,'Value') == 1
+                                            [rslt,ack] = serial_command('$1CMD:WRLS_:1',COM_aligner); %RELEASE WAFER
+                                            if rslt ~= 0
+                                                [rslt,ack] = serial_command('$1CMD:WRLS_:1',COM_aligner); %RELEASE WAFER
+                                                if rslt ~= 0
+                                                    current_situation = 'wafer release fail';
+                                                    set(hText_currentsituation,'String',current_situation);
+                                                    clock_log = clock;
+                                                    fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+                                                    fclose(fid_log);
+                                                    return;
+                                                end
+                                            end
+                                            [rslt,ack] = serial_z(4,COM_cylinder);
+                                            pause(2);
+                                            [rslt,ack] = serial_command(['$1CMD:MOVED:1,2,' num2str(round(rem(offsetX*cos(offsetY*n*pi/180000),8000)))],COM_aligner);
+                                            [rslt,ack] = serial_command(['$1CMD:MOVED:2,2,' num2str(round(rem(offsetX*sin(offsetY*n*pi/180000),8000)))],COM_aligner);
+                                        end
+                                    case 3  %step notch
+                                        if get(hPopupMenu_alignertype,'Value') == 1
+                                            [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta*n,360000))],COM_aligner);
+                                        else
+                                            if (rem(rem(offsetTheta*n,360000),120000) < 30000 && rem(rem(offsetTheta*n,360000),120000) >= 0) || (rem(rem(offsetTheta*n,360000),120000) < -90000 && rem(rem(offsetTheta*n,360000),120000) < 0)
+                                                [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta*n,360000)+30000)],COM_aligner);
+                                                [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
+                                                [rslt,ack] = serial_command('$1CMD:MOVED:5,2,+00002000',COM_aligner);    %X UnCLAMP
+                                                [rslt,ack] = serial_command('$1CMD:MOVED:4,2,+00006000',COM_aligner);    %Z UP
+                                                [rslt,ack] = serial_command('$1CMD:HOME_',COM_aligner);    %HOME
+                                                [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
+                                                [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
+                                                [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
+                                                [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(-30000)],COM_aligner);
+                                            else
+                                                [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(rem(offsetTheta*n,360000))],COM_aligner);
+                                            end
+                                        end
+                                        if get(hPopupMenu_alignertype,'Value') == 1
+                                            [rslt,ack] = serial_command('$1CMD:WRLS_:1',COM_aligner); %RELEASE WAFER
+                                            if rslt ~= 0
+                                                [rslt,ack] = serial_command('$1CMD:WRLS_:1',COM_aligner); %RELEASE WAFER
+                                                if rslt ~= 0
+                                                    current_situation = 'wafer release fail';
+                                                    set(hText_currentsituation,'String',current_situation);
+                                                    clock_log = clock;
+                                                    fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+                                                    fclose(fid_log);
+                                                    return;
+                                                end
+                                            end
+                                            [rslt,ack] = serial_z(4,COM_cylinder);
+                                            pause(2);
+                                            [rslt,ack] = serial_command(['$1CMD:MOVED:1,2,' num2str(rem(offsetX,8000))],COM_aligner);
+                                            [rslt,ack] = serial_command(['$1CMD:MOVED:2,2,' num2str(rem(offsetY,8000))],COM_aligner);
+                                        end
+                                    otherwise
+                                        disp('Unknown option');
+                                        fclose(fid_log);
+                                        return;
+                                end
+
+                                if get(hPopupMenu_alignertype,'Value') == 1
+                                    [rslt,ack] = serial_z(3,COM_cylinder);      %0MOVE
+                                    [rslt,ack] = serial_command('$1CMD:WHLD_:1',COM_aligner); %HOLD WAFER
+                                    pause(2);
+                                else
+                                    [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
+                                    [rslt,ack] = serial_command('$1CMD:MOVED:5,2,+00002000',COM_aligner);    %X CLAMP
+                                    [rslt,ack] = serial_command('$1CMD:MOVED:4,2,+00006000',COM_aligner);    %Z UP
+                                    [rslt,ack] = serial_command('$1CMD:HOME_',COM_aligner);    %HOME
+                                end
+
                             end
-                            
                         end
-                    end
-                    
-                    if get(hToggleButtun_align,'Value') == 0
-                        set(hToggleButtun_align,'Value',1);
-                    end
-                    pause(0.1);
-                    %             pause(0.001);
-                    aligner_autotest_calibration('align');
-                    
-                    
-                    t = get(hToggleButtun_align,'Userdata');
-                    ack = t{1};
-                    if get(hCheckBox_loaddata,'Value') == 1 || ~strncmp(ack, '$1FIN:ALIGN:00000000', 20)
-                        current_situation = 'download ccd & encoder data';
-                        set(hText_currentsituation,'String',current_situation);
-                        clock_log = clock;
-                        fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-                        pause(0.001);
-                        [rslt,ack_get,data] = serial_get('$1GET:ALIGN:9',COM_aligner); % data read & save
-                        data_save = str2num(data);
-                        clear data; %20171128
-                        csvwrite([get(hEdit_path, 'string'),'\n',num2str(n),'.csv'],data_save);
-                        clear data_save;    %20171128
-                        tmpReply = regexp(ack,':','split');
-                        tmp = char(tmpReply(3));
-                        AlignReply = regexprep(tmp,'[\n\r]+','');
-                        if (hex2dec(AlignReply) < hex2dec('86800000') || hex2dec(AlignReply) > hex2dec('86900000')) && hex2dec(AlignReply) ~= hex2dec('96860000') && hex2dec(AlignReply) ~= hex2dec('00000000')
-                            current_situation = ack;
-                            set(hText_currentsituation,'String',current_situation);
-                            break;
-                        end
-                    end
-                    current_situation = 'save align data';
-                    set(hText_currentsituation,'String',current_situation);
-                    clock_log = clock;
-                    fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-                    pause(0.001);
-                    [rslt,ackali] = serial_get('$1GET:ALIGN:0',COM_aligner);
-                    %xlsFile = [get(hEdit_path, 'string'),'\',get(hEdit_path, 'string'),'.xls'];
-                    %sheetName='data';
-                    if n == 0
-                        %                headers =  {'n','notch angle','offset angle','offset','encoder data abs','cpld count','ccd average','ccd max','num ccd max','encoder ccd max','ccd min','num ccd min','encoder ccd min','ccd per encoder max','num ccd per encoder max','encoder ccd per encoder max','count ccd per encoder max','ccd per encoder min','num ccd per encoder min','encoder ccd per encoder min','count ccd per encoder min','result','threshold','photo intensity','photo switch','photo sense 0','photo sense 1'};
-                        headers =  {'n','encoder notch','encoder notch delta','encoder offset','ccd offset','encoder 2nd flat','encoder data abs','cpld count','ccd average','ccd max','num ccd max','encoder ccd max','ccd min','num ccd min','encoder ccd min','ccd per encoder max','num ccd per encoder max','encoder ccd per encoder max','count ccd per encoder max','ccd per encoder min','num ccd per encoder min','encoder ccd per encoder min','count ccd per encoder min','ccd per encoder max','num ccd per encoder max','encoder ccd per encoder max','count ccd per encoder max','ccd per encoder min','num ccd per encoder min','encoder ccd per encoder min','count ccd per encoder min','result','threshold','photo intensity','photo switch','photo sense 0','photo sense 1'};
-                        %[status,msg] = xlswrite(xlsFile,headers,sheetName);
-                        %fid = fopen('D:\Output\data.csv', 'w') ;
-                        fid = fopen( [get(hEdit_path, 'string'),'\','data_',get(hEdit_path, 'string'),'.csv'], 'w') ;
-                        
-                        fprintf(fid, '%s,', headers{1,1:end-1}) ;
-                        fprintf(fid, '%s\n', headers{1,end}) ;
-                        fclose(fid) ;
-                    end
-                    %                 [status,msg] = xlswrite(xlsFile,n,sheetName,['A',num2str(n+2)]);
-                    ackali_split = regexp(ackali,'\$1ACK\:ALIGN\:','split');
-                    ackali_split = regexp(ackali_split{1,2},'\r','split');
-                    ackali_split = regexp(ackali_split{1,1},',','split');
-                    ackali_split = [num2str(n),ackali_split];
-                    %                 [status,msg] = xlswrite(xlsFile,ackali_split,sheetName,['B',num2str(n+2)]);
-                    %寫入資料至CSV，逗號分隔
-                    fid = fopen([get(hEdit_path, 'string'),'\','data_',get(hEdit_path, 'string'),'.csv'], 'a') ;
-                    fprintf(fid, '%s,', ackali_split{1,1:end-1}) ;
-                    fprintf(fid, '%s\n', ackali_split{1,end}) ;
-                    fclose(fid);
-                    %[status,msg] = xlswrite(xlsFile,[n,ackali_split],sheetName,['A',num2str(n+2)]);
-                    
-                    t = get(hToggleButtun_align,'Userdata');
-                    ack = t{1};
-                    t = str2num(t{2});
-                    if ~strncmp(ack, '$1FIN:ALIGN:00000000', 20)    %if fail don't capture
-                        tElapsed=toc(tStart);
-                        [rslt,ack] = serial_command('$1CMD:HOME_',COM_aligner);    %HOME
-                        continue;
-                    end
-                else %Theta test
-                    offsetTheta = round(str2num(get(hEdit_theta, 'string')));
-                    %if rem(offsetTheta,360000) == 0
-                    if n == 0
+
                         if get(hToggleButtun_align,'Value') == 0
                             set(hToggleButtun_align,'Value',1);
                         end
                         pause(0.1);
+                        %             pause(0.001);
                         aligner_autotest_calibration('align');
+
+
                         t = get(hToggleButtun_align,'Userdata');
                         ack = t{1};
-                        tmpReply = regexp(ack,':','split');
-                        tmp = char(tmpReply(3));
-                        AlignReply = regexprep(tmp,'[\n\r]+','');
-                        if (hex2dec(AlignReply) < hex2dec('86800000') || hex2dec(AlignReply) > hex2dec('86900000')) && hex2dec(AlignReply) ~= hex2dec('96860000') && hex2dec(AlignReply) ~= hex2dec('00000000')
-                            current_situation = ack;
+                        if get(hCheckBox_loaddata,'Value') == 1 || ~strncmp(ack, '$1FIN:ALIGN:00000000', 20)
+                            current_situation = 'download ccd & encoder data';
                             set(hText_currentsituation,'String',current_situation);
-                            break;
+                            clock_log = clock;
+                            fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+                            pause(0.001);
+                            [rslt,ack_get,data] = serial_get('$1GET:ALIGN:9',COM_aligner); % data read & save
+                            data_save = str2num(data);
+                            clear data; %20171128
+                            csvwrite([get(hEdit_path, 'string'),'\n',num2str(n),'.csv'],data_save);
+                            clear data_save;    %20171128
+                            tmpReply = regexp(ack,':','split');
+                            tmp = char(tmpReply(3));
+                            AlignReply = regexprep(tmp,'[\n\r]+','');
+                            if (hex2dec(AlignReply) < hex2dec('86800000') || hex2dec(AlignReply) > hex2dec('86900000')) && hex2dec(AlignReply) ~= hex2dec('96860000') && hex2dec(AlignReply) ~= hex2dec('00000000')
+                                current_situation = ack;
+                                set(hText_currentsituation,'String',current_situation);
+                                break;
+                            end
                         end
-                    else
-                        switch get(hPopupMenu_testmode, 'value')
-                            case 4 %Theta(One-Way)
-                                if n==1
-                                    [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
-                                    [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
-                                    [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
-                                end
-                                [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(offsetTheta)],COM_aligner);
-                            case 5 %Theta(Two-Way)
-                                if n==1
-                                    [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
-                                    [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
-                                    [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
-                                end
-                                if mod(n,2) == 0
-                                    [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(offsetTheta)],COM_aligner);
-                                else
-                                    [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(-offsetTheta-15000)],COM_aligner);
-                                    [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(15000)],COM_aligner);
-                                end
-                                %[rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(-offsetTheta)],COM_aligner);
-                            case 6 %Z&Grip
-                                [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
-                                [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
-                                [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
-                                [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
-                                [rslt,ack] = serial_command('$1CMD:MOVED:5,2,+00002000',COM_aligner);    %X UnCLAMP
-                                [rslt,ack] = serial_command('$1CMD:MOVED:4,2,+00006000',COM_aligner);    %Z UP
-                        end
-                        
                         current_situation = 'save align data';
                         set(hText_currentsituation,'String',current_situation);
                         clock_log = clock;
@@ -2634,7 +2926,7 @@ switch(action)
                             %[status,msg] = xlswrite(xlsFile,headers,sheetName);
                             %fid = fopen('D:\Output\data.csv', 'w') ;
                             fid = fopen( [get(hEdit_path, 'string'),'\','data_',get(hEdit_path, 'string'),'.csv'], 'w') ;
-                            
+
                             fprintf(fid, '%s,', headers{1,1:end-1}) ;
                             fprintf(fid, '%s\n', headers{1,end}) ;
                             fclose(fid) ;
@@ -2650,13 +2942,104 @@ switch(action)
                         fprintf(fid, '%s,', ackali_split{1,1:end-1}) ;
                         fprintf(fid, '%s\n', ackali_split{1,end}) ;
                         fclose(fid);
-                        
+                        %[status,msg] = xlswrite(xlsFile,[n,ackali_split],sheetName,['A',num2str(n+2)]);
+
+                        t = get(hToggleButtun_align,'Userdata');
+                        ack = t{1};
+                        t = str2num(t{2});
+                        if ~strncmp(ack, '$1FIN:ALIGN:00000000', 20)    %if fail don't capture
+                            tElapsed=toc(tStart);
+                            [rslt,ack] = serial_command('$1CMD:HOME_',COM_aligner);    %HOME
+                            continue;
+                        end
+                    else %Theta test
+                        offsetTheta = round(str2num(get(hEdit_theta, 'string')));
+                        %if rem(offsetTheta,360000) == 0
+                        if n == 0
+                            if get(hToggleButtun_align,'Value') == 0
+                                set(hToggleButtun_align,'Value',1);
+                            end
+                            pause(0.1);
+                            aligner_autotest_calibration('align');
+                            t = get(hToggleButtun_align,'Userdata');
+                            ack = t{1};
+                            tmpReply = regexp(ack,':','split');
+                            tmp = char(tmpReply(3));
+                            AlignReply = regexprep(tmp,'[\n\r]+','');
+                            if (hex2dec(AlignReply) < hex2dec('86800000') || hex2dec(AlignReply) > hex2dec('86900000')) && hex2dec(AlignReply) ~= hex2dec('96860000') && hex2dec(AlignReply) ~= hex2dec('00000000')
+                                current_situation = ack;
+                                set(hText_currentsituation,'String',current_situation);
+                                break;
+                            end
+                        else
+                            switch get(hPopupMenu_testmode, 'value')
+                                case 4 %Theta(One-Way)
+                                    if n==1
+                                        [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
+                                        [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
+                                        [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
+                                    end
+                                    [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(offsetTheta)],COM_aligner);
+                                case 5 %Theta(Two-Way)
+                                    if n==1
+                                        [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
+                                        [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
+                                        [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
+                                    end
+                                    if mod(n,2) == 0
+                                        [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(offsetTheta)],COM_aligner);
+                                    else
+                                        [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(-offsetTheta-15000)],COM_aligner);
+                                        [rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(15000)],COM_aligner);
+                                    end
+                                    %[rslt,ack] = serial_command(['$1CMD:MOVED:3,2,' num2str(-offsetTheta)],COM_aligner);
+                                case 6 %Z&Grip
+                                    [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
+                                    [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,10000,00',COM_aligner);    %X CLAMP
+                                    [rslt,ack] = serial_command('$1CMD:MOVED:4,1,+00000000',COM_aligner);    %Z DOWN
+                                    [rslt,ack] = serial_command('$1CMD:MOVDP:1989 ,01000,00',COM_aligner);    %Z MID-DOWN
+                                    [rslt,ack] = serial_command('$1CMD:MOVED:5,2,+00002000',COM_aligner);    %X UnCLAMP
+                                    [rslt,ack] = serial_command('$1CMD:MOVED:4,2,+00006000',COM_aligner);    %Z UP
+                            end
+
+                            current_situation = 'save align data';
+                            set(hText_currentsituation,'String',current_situation);
+                            clock_log = clock;
+                            fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+                            pause(0.001);
+                            [rslt,ackali] = serial_get('$1GET:ALIGN:0',COM_aligner);
+                            %xlsFile = [get(hEdit_path, 'string'),'\',get(hEdit_path, 'string'),'.xls'];
+                            %sheetName='data';
+                            if n == 0
+                                %                headers =  {'n','notch angle','offset angle','offset','encoder data abs','cpld count','ccd average','ccd max','num ccd max','encoder ccd max','ccd min','num ccd min','encoder ccd min','ccd per encoder max','num ccd per encoder max','encoder ccd per encoder max','count ccd per encoder max','ccd per encoder min','num ccd per encoder min','encoder ccd per encoder min','count ccd per encoder min','result','threshold','photo intensity','photo switch','photo sense 0','photo sense 1'};
+                                headers =  {'n','encoder notch','encoder notch delta','encoder offset','ccd offset','encoder 2nd flat','encoder data abs','cpld count','ccd average','ccd max','num ccd max','encoder ccd max','ccd min','num ccd min','encoder ccd min','ccd per encoder max','num ccd per encoder max','encoder ccd per encoder max','count ccd per encoder max','ccd per encoder min','num ccd per encoder min','encoder ccd per encoder min','count ccd per encoder min','ccd per encoder max','num ccd per encoder max','encoder ccd per encoder max','count ccd per encoder max','ccd per encoder min','num ccd per encoder min','encoder ccd per encoder min','count ccd per encoder min','result','threshold','photo intensity','photo switch','photo sense 0','photo sense 1'};
+                                %[status,msg] = xlswrite(xlsFile,headers,sheetName);
+                                %fid = fopen('D:\Output\data.csv', 'w') ;
+                                fid = fopen( [get(hEdit_path, 'string'),'\','data_',get(hEdit_path, 'string'),'.csv'], 'w') ;
+
+                                fprintf(fid, '%s,', headers{1,1:end-1}) ;
+                                fprintf(fid, '%s\n', headers{1,end}) ;
+                                fclose(fid) ;
+                            end
+                            %                 [status,msg] = xlswrite(xlsFile,n,sheetName,['A',num2str(n+2)]);
+                            ackali_split = regexp(ackali,'\$1ACK\:ALIGN\:','split');
+                            ackali_split = regexp(ackali_split{1,2},'\r','split');
+                            ackali_split = regexp(ackali_split{1,1},',','split');
+                            ackali_split = [num2str(n),ackali_split];
+                            %                 [status,msg] = xlswrite(xlsFile,ackali_split,sheetName,['B',num2str(n+2)]);
+                            %寫入資料至CSV，逗號分隔
+                            fid = fopen([get(hEdit_path, 'string'),'\','data_',get(hEdit_path, 'string'),'.csv'], 'a') ;
+                            fprintf(fid, '%s,', ackali_split{1,1:end-1}) ;
+                            fprintf(fid, '%s\n', ackali_split{1,end}) ;
+                            fclose(fid);
+
+                        end
+                        %                     else
+                        %                         current_situation = 'offsetTheta invalid!';
+                        %                         set(hText_currentsituation,'String',current_situation);
+                        %                         break;
+                        %                     end
                     end
-                    %                     else
-                    %                         current_situation = 'offsetTheta invalid!';
-                    %                         set(hText_currentsituation,'String',current_situation);
-                    %                         break;
-                    %                     end
                 end
                 for i = 1:picCount
                     if get(hToggleButtun_run,'Value') == 0
@@ -2839,6 +3222,9 @@ switch(action)
                     t = 0;
                 end
                 
+                if(get(hCheckBox_staticmeasure, 'value') == 1)
+                    t = 0;                    
+                end
                 MeasureUtility.Var_average_t(t);
                 MeasureUtility.Var_max_t(t);
                 MeasureUtility.Var_min_t(t);
@@ -3456,97 +3842,99 @@ switch(action)
                 %                 dlmwrite([get(hEdit_path, 'string'),'\','Measure_aUtility','.csv'],M,'delimiter',',','precision','%.4f','-append');%寫入全部資料
                 %
                 %             end
-                
-                [rslt,ackpos] = serial_get('$1GET:POS__:1,1',COM_aligner);
-                current_situation = 'save command data';
-                set(hText_currentsituation,'String',current_situation);
-                clock_log = clock;
-                fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-                pause(0.001);
-                %sheetName='command';
-                if n == 0
-                    headers =  {'n','x','y','theta','reserved','reserved','reserved'};
-                    %寫入Header至CSV，逗號分隔
-                    fid = fopen([get(hEdit_path, 'string'),'\','command_',get(hEdit_path, 'string'),'.csv'], 'w') ;
-                    fprintf(fid, '%s,', headers{1,1:end-1}) ;
-                    fprintf(fid, '%s\n', headers{1,end}) ;
-                    fclose(fid) ;
-                    %[status,msg] = xlswrite(xlsFile,headers,sheetName);
-                end
-                %                 [status,msg] = xlswrite(xlsFile,n,sheetName,['A',num2str(n+2)]);
-                ackpos_split = regexp(ackpos,'\$1ACK\:POS__\:','split');
-                ackpos_split = regexp(ackpos_split{1,2},'\r','split');
-                ackpos_split = regexp(ackpos_split{1,1},',','split');
-                ackpos_split = [num2str(n),ackpos_split];
-                %                 [status,msg] = xlswrite(xlsFile,ackpos_split,sheetName,['B',num2str(n+2)]);
-                %寫入資料至CSV，逗號分隔
-                fid = fopen([get(hEdit_path, 'string'),'\','command_',get(hEdit_path, 'string'),'.csv'], 'a') ;
-                fprintf(fid, '%s,', ackpos_split{1,1:end-1}) ;
-                fprintf(fid, '%s\n', ackpos_split{1,end}) ;
-                fclose(fid);
-                %[status,msg] = xlswrite(xlsFile,[n,ackpos_split],sheetName,['A',num2str(n+2)]);
-                
-                [rslt,ackpos1] = serial_get('$1GET:POS__:2,1',COM_aligner);
-                current_situation = 'save encoder data';
-                set(hText_currentsituation,'String',current_situation);
-                clock_log = clock;
-                fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-                pause(0.001);
-                %sheetName='encoder';
-                if n == 0
-                    headers =  {'n','x','y','theta','reserved','reserved','reserved'};
-                    fid = fopen([get(hEdit_path, 'string'),'\','encoder_',get(hEdit_path, 'string'),'.csv'], 'w') ;
-                    fprintf(fid, '%s,', headers{1,1:end-1}) ;
-                    fprintf(fid, '%s\n', headers{1,end}) ;
-                    fclose(fid) ;
-                    %[status,msg] = xlswrite(xlsFile,headers,sheetName);
-                end
-                %                 [status,msg] = xlswrite(xlsFile,n,sheetName,['A',num2str(n+2)]);
-                ackpos1_split = regexp(ackpos1,'\$1ACK\:POS\_\_\:','split');
-                ackpos1_split = regexp(ackpos1_split{1,2},'\r','split');
-                ackpos1_split = regexp(ackpos1_split{1,1},',','split');
-                ackpos1_split = [num2str(n),ackpos1_split];
-                %寫入資料至CSV，逗號分隔
-                fid = fopen([get(hEdit_path, 'string'),'\','encoder_',get(hEdit_path, 'string'),'.csv'], 'a') ;
-                fprintf(fid, '%s,', ackpos1_split{1,1:end-1}) ;
-                fprintf(fid, '%s\n', ackpos1_split{1,end}) ;
-                fclose(fid);
-                %                 [status,msg] = xlswrite(xlsFile,ackpos1_split,sheetName,['B',num2str(n+2)]);
-                %[status,msg] = xlswrite(xlsFile,[n,ackpos1_split],sheetName,['A',num2str(n+2)]);
-                
-                [rslt,ackrslt] = serial_get('$1GET:ALIGN:1',COM_aligner);
-                current_situation = 'save result data';
-                set(hText_currentsituation,'String',current_situation);
-                clock_log = clock;
-                fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-                pause(0.001);
-                %sheetName='result';
-                if n == 0
-                    headers =  {'n','aligner type','wafer radius','notch angle','offset x','offset y','theta angle','distance2','theta2','result'};
-                    fid = fopen([get(hEdit_path, 'string'),'\','result_',get(hEdit_path, 'string'),'.csv'], 'w') ;
-                    fprintf(fid, '%s,', headers{1,1:end-1}) ;
-                    fprintf(fid, '%s\n', headers{1,end}) ;
+                if(get(hCheckBox_staticmeasure, 'value') == 0)
+                    [rslt,ackpos] = serial_get('$1GET:POS__:1,1',COM_aligner);
+                    current_situation = 'save command data';
+                    set(hText_currentsituation,'String',current_situation);
+                    clock_log = clock;
+                    fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+                    pause(0.001);
+                    %sheetName='command';
+                    if n == 0
+                        headers =  {'n','x','y','theta','reserved','reserved','reserved'};
+                        %寫入Header至CSV，逗號分隔
+                        fid = fopen([get(hEdit_path, 'string'),'\','command_',get(hEdit_path, 'string'),'.csv'], 'w') ;
+                        fprintf(fid, '%s,', headers{1,1:end-1}) ;
+                        fprintf(fid, '%s\n', headers{1,end}) ;
+                        fclose(fid) ;
+                        %[status,msg] = xlswrite(xlsFile,headers,sheetName);
+                    end
+                    %                 [status,msg] = xlswrite(xlsFile,n,sheetName,['A',num2str(n+2)]);
+                    ackpos_split = regexp(ackpos,'\$1ACK\:POS__\:','split');
+                    ackpos_split = regexp(ackpos_split{1,2},'\r','split');
+                    ackpos_split = regexp(ackpos_split{1,1},',','split');
+                    ackpos_split = [num2str(n),ackpos_split];
+                    %                 [status,msg] = xlswrite(xlsFile,ackpos_split,sheetName,['B',num2str(n+2)]);
+                    %寫入資料至CSV，逗號分隔
+                    fid = fopen([get(hEdit_path, 'string'),'\','command_',get(hEdit_path, 'string'),'.csv'], 'a') ;
+                    fprintf(fid, '%s,', ackpos_split{1,1:end-1}) ;
+                    fprintf(fid, '%s\n', ackpos_split{1,end}) ;
                     fclose(fid);
-                    %[status,msg] = xlswrite(xlsFile,headers,sheetName);
+                    %[status,msg] = xlswrite(xlsFile,[n,ackpos_split],sheetName,['A',num2str(n+2)]);
+
+                    [rslt,ackpos1] = serial_get('$1GET:POS__:2,1',COM_aligner);
+                    current_situation = 'save encoder data';
+                    set(hText_currentsituation,'String',current_situation);
+                    clock_log = clock;
+                    fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+                    pause(0.001);
+                    %sheetName='encoder';
+
+                    if n == 0
+                        headers =  {'n','x','y','theta','reserved','reserved','reserved'};
+                        fid = fopen([get(hEdit_path, 'string'),'\','encoder_',get(hEdit_path, 'string'),'.csv'], 'w') ;
+                        fprintf(fid, '%s,', headers{1,1:end-1}) ;
+                        fprintf(fid, '%s\n', headers{1,end}) ;
+                        fclose(fid) ;
+                        %[status,msg] = xlswrite(xlsFile,headers,sheetName);
+                    end
+                    %                 [status,msg] = xlswrite(xlsFile,n,sheetName,['A',num2str(n+2)]);
+                    ackpos1_split = regexp(ackpos1,'\$1ACK\:POS\_\_\:','split');
+                    ackpos1_split = regexp(ackpos1_split{1,2},'\r','split');
+                    ackpos1_split = regexp(ackpos1_split{1,1},',','split');
+                    ackpos1_split = [num2str(n),ackpos1_split];
+                    %寫入資料至CSV，逗號分隔
+                    fid = fopen([get(hEdit_path, 'string'),'\','encoder_',get(hEdit_path, 'string'),'.csv'], 'a') ;
+                    fprintf(fid, '%s,', ackpos1_split{1,1:end-1}) ;
+                    fprintf(fid, '%s\n', ackpos1_split{1,end}) ;
+                    fclose(fid);
+                    %                 [status,msg] = xlswrite(xlsFile,ackpos1_split,sheetName,['B',num2str(n+2)]);
+                    %[status,msg] = xlswrite(xlsFile,[n,ackpos1_split],sheetName,['A',num2str(n+2)]);
+
+                    [rslt,ackrslt] = serial_get('$1GET:ALIGN:1',COM_aligner);
+                    current_situation = 'save result data';
+                    set(hText_currentsituation,'String',current_situation);
+                    clock_log = clock;
+                    fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+                    pause(0.001);
+                    %sheetName='result';
+                    if n == 0
+                        headers =  {'n','aligner type','wafer radius','notch angle','offset x','offset y','theta angle','distance2','theta2','result'};
+                        fid = fopen([get(hEdit_path, 'string'),'\','result_',get(hEdit_path, 'string'),'.csv'], 'w') ;
+                        fprintf(fid, '%s,', headers{1,1:end-1}) ;
+                        fprintf(fid, '%s\n', headers{1,end}) ;
+                        fclose(fid);
+                        %[status,msg] = xlswrite(xlsFile,headers,sheetName);
+                    end
+                    %                 [status,msg] = xlswrite(xlsFile,n,sheetName,['A',num2str(n+2)]);
+                    ackrslt_split = regexp(ackrslt,'\$1ACK\:ALIGN\:','split');
+                    ackrslt_split = regexp(ackrslt_split{1,2},'\r','split');
+                    ackrslt_split = regexp(ackrslt_split{1,1},',','split');
+                    ackrslt_split = [num2str(n),ackrslt_split];
+                    %寫入資料至CSV，逗號分隔
+                    fid = fopen([get(hEdit_path, 'string'),'\','result_',get(hEdit_path, 'string'),'.csv'], 'a') ;
+                    fprintf(fid, '%s,', ackrslt_split{1,1:end-1}) ;
+                    fprintf(fid, '%s\n', ackrslt_split{1,end}) ;
+                    fclose(fid);
+                    %                 [status,msg] = xlswrite(xlsFile,ackrslt_split,sheetName,['B',num2str(n+2)]);
+                    %[status,msg] = xlswrite(xlsFile,[n,ackrslt_split],sheetName,['A',num2str(n+2)]);
+                    current_situation = 'display measure data';
+                    set(hText_currentsituation,'String',current_situation);
+                    clock_log = clock;
+                    fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
+                    pause(0.001);
+                    %sheetName='measure';
                 end
-                %                 [status,msg] = xlswrite(xlsFile,n,sheetName,['A',num2str(n+2)]);
-                ackrslt_split = regexp(ackrslt,'\$1ACK\:ALIGN\:','split');
-                ackrslt_split = regexp(ackrslt_split{1,2},'\r','split');
-                ackrslt_split = regexp(ackrslt_split{1,1},',','split');
-                ackrslt_split = [num2str(n),ackrslt_split];
-                %寫入資料至CSV，逗號分隔
-                fid = fopen([get(hEdit_path, 'string'),'\','result_',get(hEdit_path, 'string'),'.csv'], 'a') ;
-                fprintf(fid, '%s,', ackrslt_split{1,1:end-1}) ;
-                fprintf(fid, '%s\n', ackrslt_split{1,end}) ;
-                fclose(fid);
-                %                 [status,msg] = xlswrite(xlsFile,ackrslt_split,sheetName,['B',num2str(n+2)]);
-                %[status,msg] = xlswrite(xlsFile,[n,ackrslt_split],sheetName,['A',num2str(n+2)]);
-                current_situation = 'display measure data';
-                set(hText_currentsituation,'String',current_situation);
-                clock_log = clock;
-                fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
-                pause(0.001);
-                %sheetName='measure';
                 if n~= 0
                     
                     %                 if (get(hPopupMenu_wafertype,'value')-1)
@@ -3616,8 +4004,11 @@ switch(action)
                     set(hText_notchyaverage,'String',['Y(mm): ',num2str(MeasureUtility.Var_average_point_2*1.67/300)]);
                     %set(hText_offsetdeg,'String',['Offset(deg): ',num2str(data(12),3)]);
                     %                     set(hText_offsetdeg,'String',['Offset(deg): ',num2str(MeasureUtility.Var_offset_deg,3)]);
-                    set(hText_offsetdeg,'String',['Offset(deg): ',num2str(MeasureUtility.Var_notch_deg,3)]);
-                    set(hText_offsetmm,'String',['Offset(mm): ',num2str(MeasureUtility.Var_offset_mm,3)]);
+                    
+                    set(hText_Centeroffsetmm,'String',['O Offset(mm): ',num2str(MeasureUtility.Var_center_mm,3)]);                    
+                    set(hText_offsetdeg,'String',['N Offset(deg): ',num2str(MeasureUtility.Var_notch_deg,3)]);
+                    set(hText_offsetmm,'String',['N Offset(mm): ',num2str(MeasureUtility.Var_offset_mm,3)]);
+                    
                     if(MeasureUtility.Var_FQC < 7)
                         if ~isempty(MeasureUtility.Var_R_interval_fqc1) || ~isempty(MeasureUtility.Var_S_interval_fqc1)
                             set(hText_fqc1,'String',['1: ',num2str(MeasureUtility.Var_R_interval_fqc1,3),', ',num2str(MeasureUtility.Var_S_interval_fqc1,3)]);
@@ -3723,14 +4114,21 @@ switch(action)
                 fprintf(fid_log, ['%4d/%02d/%02d %02d:%02d:%05.2f ',current_situation,'\r\n'], clock_log);
                 pause(0.001);
                 title( [ strcat('Elapsed time:',num2str(roundn(toc(ttlStart), -3)),'(s)    n=') , num2str( n )] );
-                saveas( hFigure , [ get(hEdit_path, 'string') , '\n' , num2str( n ) , '.bmp' ] );
+                
+                % 20200804 pingchung 存檔改為JPG檔
+                %saveas( hFigure , [ get(hEdit_path, 'string') , '\n' , num2str( n ) , '.bmp' ] );
+                H = getframe(hFigure);        
+                imwrite(H.cdata, [ get(hEdit_path, 'string') , '\n' , num2str( n ) , '.jpg' ]);                
+              
                 %             end
                 
                 %set(hText_testcountheader,'String',strcat('Test Cnt',num2str(n+1) ,'/',num2str(testCount)));
-                if MeasureUtility.Var_notch_deg > 0.5 || MeasureUtility.Var_offset_mm > 0.5
-                    current_situation = 'Out of spec';
-                    set(hText_currentsituation,'String',current_situation);
-                    break;
+                if get(hCheckBox_overangleoffset,'Value') == 1
+                    if MeasureUtility.Var_notch_deg > 0.5 || MeasureUtility.Var_offset_mm > 0.5
+                        current_situation = 'Out of spec';
+                        set(hText_currentsituation,'String',current_situation);
+                        break;
+                    end
                 end
             end
             %         dos(['start ' xlsFile]);

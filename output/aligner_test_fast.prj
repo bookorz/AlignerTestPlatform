@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deployment-project>
-  <configuration target="target.standalone.win" target-name="Windows Standalone Application" name="aligner_test_fast" location="C:\Users\ethan_huang\source\repos\aligner_test_platform\output" file="C:\Users\ethan_huang\source\repos\aligner_test_platform\output\aligner_test_fast.prj" preferred-package-type="package.type.exe" build-checksum="2064349181" preferred-package-location="C:\Users\ethan_huang\Desktop\aligner_test_platform\output\aligner_test_fast\distrib">
-    <param.project.name>C:\Users\ethan_huang\source\repos\aligner_test_platform\output\aligner_test_fast.prj</param.project.name>
+  <configuration target="target.standalone.win" target-name="Windows Standalone Application" name="aligner_test_fast" location="C:\Users\pingchung_kao\source\repos\AlignerTestPlatform\output" file="C:\Users\pingchung_kao\source\repos\AlignerTestPlatform\output\aligner_test_fast.prj" preferred-package-type="package.type.exe" build-checksum="3266773826" preferred-package-location="C:\Users\ethan_huang\Desktop\aligner_test_platform\output\aligner_test_fast\distrib">
+    <param.project.name>C:\Users\pingchung_kao\source\repos\AlignerTestPlatform\output\aligner_test_fast.prj</param.project.name>
     <param.target.type>Windows Standalone Application</param.target.type>
     <param.appname>aligner_test_fast</param.appname>
     <param.intermediate>${PROJECT_ROOT}\aligner_test_fast\src</param.intermediate>
@@ -73,13 +73,13 @@
       <file>${PROJECT_ROOT}\testconfigure.txt</file>
     </fileset.package>
     <build-deliverables>
-      <file name="aligner_test_fast.exe" location="${PROJECT_ROOT}\aligner_test_fast\distrib">C:\Users\ethan_huang\source\repos\aligner_test_platform\output\aligner_test_fast\distrib\aligner_test_fast.exe</file>
-      <file name="readme.txt" location="${PROJECT_ROOT}\aligner_test_fast\distrib">C:\Users\ethan_huang\source\repos\aligner_test_platform\output\aligner_test_fast\distrib\readme.txt</file>
+      <file name="readme.txt" location="${PROJECT_ROOT}\aligner_test_fast\distrib">C:\Users\pingchung_kao\source\repos\AlignerTestPlatform\output\aligner_test_fast\distrib\readme.txt</file>
+      <file name="aligner_test_fast.exe" location="${PROJECT_ROOT}\aligner_test_fast\distrib">C:\Users\pingchung_kao\source\repos\AlignerTestPlatform\output\aligner_test_fast\distrib\aligner_test_fast.exe</file>
     </build-deliverables>
     <matlab>
       <root>C:\Program Files\MATLAB\R2010b</root>
       <path>
-        <directory>C:\Users\ethan_huang\Documents\MATLAB</directory>
+        <directory>C:\Users\pingchung_kao\Documents\MATLAB</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\general</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\ops</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\lang</directory>
