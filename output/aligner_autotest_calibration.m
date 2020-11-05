@@ -22,7 +22,7 @@ switch(action)
         hFigure = figure('Name','Aligner Test Calibration', ...
             'NumberTitle','off', ...
             'tag', 'ui4figure', ...
-            'OuterPosition', [1 50 1000 700]);
+            'OuterPosition', [1 50 1000 700],'renderer','painters');
         % 以寫入模式開啟txt檔案
         fid = fopen('testconfigure.txt');
         % 以浮點數格式寫入資料並換行
@@ -1443,6 +1443,8 @@ switch(action)
         hText_currentsituation = findobj(0, 'tag', 'ui4currentsituation');
         hToggleButtun_communicate = findobj(0, 'tag', 'ui4communicate');
         hPopupMenu_alignertype = findobj(0, 'tag', 'ui4alignertype');
+        hPopupMenu_wafertype = findobj(0, 'tag', 'ui4wafertype'); 
+        
         if get(hToggleButtun_align,'Value') == 0
             fclose(fid_log);
             return;
@@ -1478,7 +1480,20 @@ switch(action)
                 fclose(fid_log);
                 return;
             end
-            [rslt,ack] = serial_set(['$1SET:ALIGN:',waferRadius],COM_aligner); %WAFER SIZE
+            %wafer 0 = notch
+            %wafer 1 = flat
+            %wafer 2 = circle
+            align_wafer =',0';     
+            if (get(hPopupMenu_wafertype,'value') == 1)
+                align_wafer =',0';             
+            elseif(get(hPopupMenu_wafertype,'value') == 2)
+                align_wafer =',5';           
+            else
+                align_wafer =',6';                    
+            end
+            
+               
+            [rslt,ack] = serial_set(['$1SET:ALIGN:',waferRadius, align_wafer],COM_aligner); %WAFER SIZE
         end
         
         current_situation = 'aligner set speed';
@@ -1971,6 +1986,14 @@ switch(action)
             fclose(fid_log);
             return;
         end
+        
+        if lower_edge(1) == size(imagen,1) 
+            if lower_edge(size(imagen,2)) == size(imagen,1)
+                for i= 1:size(imagen,2)
+                   lower_edge(i) = edge(i); 
+                end
+            end  
+        end
        
         %         syms  x0 y0 y1 y2
         %         S=solve(['(1-x0)^2+(y1-y0)^2=(',num2str(waferRadius),'*300/1.67)^2'],['(3840-x0)^2+(y2-y0)^2=(',num2str(waferRadius),'*300/1.67)^2']);
@@ -1986,6 +2009,7 @@ switch(action)
         
         %if (get(hPopupMenu_wafertype,'value')-1)
         if (get(hPopupMenu_wafertype,'value') == 2)     % Flat Type            
+% 20201006 pingchung Mark ++
             y_angle = size(imagen,1);       %影像高度
             cnt_y_angle = 0;                
             for i= 1+5:size(imagen,2)-5     %影像寬度(從5 ~ Width -5開始計算)
@@ -2004,6 +2028,15 @@ switch(action)
                     point(1) = (i+cnt_y_angle*point(1))/(cnt_y_angle+1);
                 end
             end
+%             y_angle = 0;
+%             for i=1:size(imagen,2)
+%                 if edge(i) >= y_angle
+%                     y_angle = edge(i);
+%                     point(1)=i; 
+%                     point(2)=edge(i); 
+%                 end
+%             end
+            
             point0 = point;
             point0(1) = round(point0(1));
             
@@ -2076,8 +2109,10 @@ switch(action)
             %             theta = 0;
             %             theta1 = 0;
             
+            %使用左側的點來進行擬似圓
             x_circle = 1:size(imagen,2)/5*2;
             y_circle = edge(1:size(imagen,2)/5*2);
+            
             x_line = size(imagen,2)/5*3+1:size(imagen,2)/5*3+size(imagen,2)/5*2;
             y_line = edge(size(imagen,2)/5*3+1:size(imagen,2)/5*3+size(imagen,2)/5*2);
             p_circle = Circle_Fitting(x_circle,y_circle);
@@ -2115,62 +2150,7 @@ switch(action)
                 x0 = (x1+x2)/2;
                 y0 = y1+(r^2-(x0-x1)^2)^0.5;
             end
-             
-% 
-%              Px(1) = 1;
-%              Py(1) = edge(Px(1));   
-%              
-%              Px(2) = size(imagen,2);
-%              Py(2) = edge(Px(2));
-%              
-%              Px(3) = round((Px(1)+Px(2))/2);
-%              Py(3) = edge(Px(3));  
-%              
-%              Px(4) = round((Px(1)+Px(3))/2);
-%              Py(4) = edge(Px(4));   
-%              
-%              Px(5) = round(((Px(1)+Px(2))/2) + ((Px(2) - Px(1))/4));
-%              Py(5) = edge(Px(5));   
-%              
-%              r = waferRadius*300/1.67;
-% 
-%              n=0;
-%              for i=1:length(Px)
-%                 for j=1:length(Py)
-%                     if i~=j
-%                         n = n + 1;
-%                     
-%                         if Py(i) ~= Py(j)
-%                             k1 = (Px(i)-Px(j))/(Py(i)-Py(j));
-%                             k2 = ((Px(i)^2-Px(j)^2)+(Py(i)^2-Py(j)^2))/(2*(Py(i)-Py(j)));
-% 
-%                             a = 1+k1^2;
-%                             b = -2*Px(i)-2*k1*k2+2*k1*Py(i);
-%                             c = Px(i)^2+k2^2-2*k2*Py(j)+Py(j)^2-r^2;  
-% 
-%                             X0(n) = (-b+(b^2-4*a*c)^0.5)/(2*a);
-%                             Y0(n) = -k1*X0(n)+k2;
-%                             if Y0(n) < 0
-%                                 X0(n) = (-b-(b^2-4*a*c)^0.5)/(2*a);
-%                                 Y0(n) = -k1*X0(n)+k2; 
-%                             end
-%                         else
-%                             X0(n) = (Px(i)+Px(j))/2;
-%                             Y0(n) = Py(i)+(r^2-(X0(n)-Px(i))^2)^0.5;
-%                         end
-%                     end
-%                 end
-%              end
-%              x0 = median(X0);
-%              y0 = median(Y0);
-
-% % %             x_circle = 1:size(imagen,2);
-% % %             y_circle = edge;
-% % %             
-% % %             p_circle = Circle_Fitting(x_circle,y_circle);
-% % %             x0 = p_circle(1);
-% % %             y0 = p_circle(2);             
-% % %              
+                                                
             point(1) = 0;
             point(2) = 0;              
             
@@ -2178,7 +2158,7 @@ switch(action)
             %Circle 無須尋找Notch
             if (get(hPopupMenu_wafertype,'value') == 1)     % Notch Type
                 %Min_r(最小的r)
-                min_r = (1-x0)^2 + (lower_edge(1) - y0)^2
+                min_r = (1-x0)^2 + (lower_edge(1) - y0)^2;
                 for i = 1:size(imagen,2) 
                     if((i-x0)^2 + (lower_edge(i) - y0)^2 < min_r)
                         min_r = (i-x0)^2 + (lower_edge(i) - y0)^2;
